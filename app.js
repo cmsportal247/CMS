@@ -21,6 +21,11 @@ function showPage(page) {
         console.error(`❌ Page ${page} not found.`);
     }
 }
+// ✅ Open Add Case Modal
+function openAddCaseModal() {
+    let modal = new bootstrap.Modal(document.getElementById("addCaseModal"));
+    modal.show();
+}
 
 // ✅ Update UI After Login
 function updateUI() {
