@@ -103,8 +103,6 @@ function logout() {
         });
 }
 
-
-// ✅ Display Cases in the Table
 function displayCases() {
     let tableBody = document.getElementById("casesTable");
     tableBody.innerHTML = ""; // Clear previous data
