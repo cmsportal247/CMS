@@ -86,14 +86,15 @@
             <button class="btn btn-success" onclick="exportToExcel()">Export to Excel</button>
         </div>
 
-        <!-- ✅ Settings Page (Change Password) -->
-        <div id="settings" class="page" style="display: none;">
-            <h2>Change Password</h2>
-            <input type="password" id="oldPassword" class="form-control mb-2" placeholder="Old Password" required>
-            <input type="password" id="newPassword" class="form-control mb-2" placeholder="New Password" required>
-            <input type="password" id="confirmPassword" class="form-control mb-2" placeholder="Re-enter New Password" required>
-            <button class="btn btn-primary" onclick="changePassword()">Change Password</button>
-        </div>
+       <!-- ✅ Wrap password change fields inside a form -->
+<form id="changePasswordForm" class="container mt-4" onsubmit="event.preventDefault(); changePassword();">
+    <h2>Change Password</h2>
+    <input type="password" id="oldPassword" class="form-control mb-2" placeholder="Old Password" required>
+    <input type="password" id="newPassword" class="form-control mb-2" placeholder="New Password" required>
+    <input type="password" id="confirmPassword" class="form-control mb-2" placeholder="Re-enter New Password" required>
+    <button type="submit" class="btn btn-primary">Change Password</button>
+</form>
+
 
     </div>
 
