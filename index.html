@@ -6,49 +6,61 @@
     <title>Customer Management System</title>
     <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body onload="updateUI()">
 
-    <div class="navbar">
+    <!-- ✅ Navigation Bar -->
+    <nav class="navbar">
         <span class="brand">Customer Management</span>
         <div id="userSection">
             <span id="welcomeText"></span>
-            <button id="logoutBtn" onclick="logout()">Logout</button>
+            <button id="logoutBtn" onclick="logout()" style="display: none;">Logout</button>
         </div>
-    </div>
+    </nav>
 
+    <!-- ✅ Navigation Menu -->
     <div class="menu">
         <button onclick="showPage('cases')">Cases List</button>
         <button onclick="showPage('reports')">Reports</button>
         <button onclick="showPage('settings')">Settings</button>
     </div>
 
+    <!-- ✅ Login Form -->
+    <div id="loginForm" class="container">
+        <h2>Login</h2>
+        <input type="text" id="username" placeholder="Username">
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="login()">Login</button>
+    </div>
+
+    <!-- ✅ Cases List Page -->
     <div id="cases" class="page">
         <h2>Cases List</h2>
-        <input type="text" id="searchInput" placeholder="Search cases..." onkeyup="searchCases()">
+        <input type="text" id="searchInput" placeholder="Search cases..." onkeyup="fetchCases(this.value)">
         <button onclick="openAddCaseModal()">+ Add Case</button>
         <table>
             <thead>
                 <tr>
-                    <th>Date Received</th>
+                    <th>Date</th>
                     <th>Staff</th>
                     <th>Mobile</th>
                     <th>Name</th>
                     <th>Work</th>
                     <th>Pending</th>
                     <th>Remarks</th>
-                    <th>Case Status</th>
+                    <th>Status</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody id="casesTable"></tbody>
         </table>
         <div class="pagination">
-            <button onclick="prevPage()">Prev</button>
-            <span id="pageInfo"></span>
-            <button onclick="nextPage()">Next</button>
+            <button onclick="changePage(-1)">Prev</button>
+            <span id="pageIndicator">Page 1</span>
+            <button onclick="changePage(1)">Next</button>
         </div>
     </div>
 
+    <!-- ✅ Reports Page -->
     <div id="reports" class="page" style="display: none;">
         <h2>Reports</h2>
         <input type="date" id="fromDate">
@@ -56,27 +68,13 @@
         <button onclick="exportToExcel()">Export to Excel</button>
     </div>
 
+    <!-- ✅ Settings Page -->
     <div id="settings" class="page" style="display: none;">
-        <h2>Settings</h2>
+        <h2>Change Password</h2>
+        <input type="password" id="oldPassword" placeholder="Old Password">
         <input type="password" id="newPassword" placeholder="New Password">
         <input type="password" id="confirmPassword" placeholder="Confirm Password">
-        <button onclick="changePassword()">Change Password</button>
-    </div>
-
-    <div id="addCaseModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal('addCaseModal')">&times;</span>
-            <h3>Add New Case</h3>
-            <input type="text" id="caseName" placeholder="Customer Name">
-            <input type="text" id="caseMobile" placeholder="Mobile Number">
-            <input type="text" id="caseWork" placeholder="Work">
-            <textarea id="caseRemarks" placeholder="Remarks"></textarea>
-            <select id="caseStatus">
-                <option value="Pending">Pending</option>
-                <option value="Resolved">Resolved</option>
-            </select>
-            <button onclick="addCase()">Add Case</button>
-        </div>
+        <button onclick="changePassword()">Update Password</button>
     </div>
 
     <script src="app.js"></script>
