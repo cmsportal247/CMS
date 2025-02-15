@@ -23,9 +23,17 @@ function showPage(page) {
 }
 // ✅ Open Add Case Modal
 function openAddCaseModal() {
-    let modal = new bootstrap.Modal(document.getElementById("addCaseModal"));
-    modal.show();
+    console.log("Opening Add Case Modal..."); // Debugging log
+    let modalElement = document.getElementById("addCaseModal");
+    
+    if (modalElement) {
+        let modal = new bootstrap.Modal(modalElement);
+        modal.show();
+    } else {
+        console.error("❌ Modal with ID 'addCaseModal' not found.");
+    }
 }
+
 
 // ✅ Update UI After Login
 function updateUI() {
