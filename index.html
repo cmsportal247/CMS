@@ -35,15 +35,14 @@
     <!-- ✅ Login Form -->
     <form id="loginForm" class="container mt-4" onsubmit="event.preventDefault(); login();">
         <h2>Login</h2>
-        <input type="text" id="username" class="form-control mb-2" placeholder="Username" required>
-        <input type="password" id="password" class="form-control mb-2" placeholder="Password" required>
+        <input type="text" id="username" class="form-control mb-2" placeholder="Username" required autocomplete="username">
+        <input type="password" id="password" class="form-control mb-2" placeholder="Password" required autocomplete="current-password">
         <button type="submit" class="btn btn-primary">Login</button>
     </form>
 
     <!-- ✅ Main App -->
     <div id="app" class="container mt-4" style="display: none;">
-
-        <!-- ✅ Cases List Page -->
+        <!-- ✅ Cases List -->
         <div id="cases" class="page">
             <button class="btn btn-primary mb-3" id="newCaseBtn" onclick="openNewCaseModal()">New Case</button>
             <input type="text" id="searchInput" class="form-control mb-3" placeholder="Search by Name or Mobile">
@@ -54,7 +53,7 @@
                         <tr>
                             <th>Date Received</th>
                             <th>Staff</th>
-                            <th>Mobile Number</th>
+                            <th>Mobile</th>
                             <th>Name</th>
                             <th>Work</th>
                             <th>Information</th>
@@ -64,13 +63,9 @@
                             <th>Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="casesTable">
-                        <!-- Cases will be loaded here -->
-                    </tbody>
+                    <tbody id="casesTable"></tbody>
                 </table>
             </div>
-
-            <!-- ✅ Pagination -->
             <div class="d-flex justify-content-between mt-3">
                 <button class="btn btn-secondary" id="prevPage" onclick="changePage(-1)">Previous</button>
                 <span id="pageIndicator">Page 1</span>
@@ -78,9 +73,26 @@
             </div>
         </div>
 
+        <!-- ✅ Reports Page -->
+        <div id="reports" class="page" style="display: none;">
+            <h2>Reports</h2>
+            <p>Select a date range to export cases.</p>
+            <input type="date" class="form-control mb-2" id="fromDate">
+            <input type="date" class="form-control mb-2" id="toDate">
+            <button class="btn btn-success" onclick="exportToExcel()">Export to Excel</button>
+        </div>
+
+        <!-- ✅ Settings Page -->
+        <form id="changePasswordForm" class="container mt-4" onsubmit="event.preventDefault(); changePassword();">
+            <h2>Change Password</h2>
+            <input type="password" id="oldPassword" class="form-control mb-2" placeholder="Old Password" required>
+            <input type="password" id="newPassword" class="form-control mb-2" placeholder="New Password" required>
+            <input type="password" id="confirmPassword" class="form-control mb-2" placeholder="Re-enter New Password" required>
+            <button type="submit" class="btn btn-primary">Change Password</button>
+        </form>
     </div>
 
-    <!-- ✅ Bootstrap JS + Custom JS -->
+    <!-- ✅ Bootstrap & Custom JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="app.js"></script>
 
