@@ -10,7 +10,7 @@ let currentPage = 1;
 const casesPerPage = 10;
 
 // ✅ Update ngrok Backend URL (Always use the latest)
-const BASE_URL = "https://2237-2405-201-c04c-a12a-75d8-6f7d-6499-de33.ngrok-free.app"; 
+const BASE_URL = "https://cmsportal.netlify.app/"; 
 
 // ✅ Function to switch pages
 function showPage(page) {
