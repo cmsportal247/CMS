@@ -16,9 +16,23 @@ body {
     align-items: center;
 }
 
-.navbar-brand {
+.navbar .brand {
     font-weight: bold;
     font-size: 20px;
+}
+
+#userSection {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#logoutBtn {
+    background-color: red;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    cursor: pointer;
 }
 
 /* ✅ Page Layout */
@@ -27,80 +41,107 @@ body {
     padding: 20px;
 }
 
-.active {
-    display: block !important; /* Show active page */
+/* ✅ Show Active Page */
+.page.active {
+    display: block !important;
 }
 
 /* ✅ Table Styling */
-.table {
-    font-size: 14px;
+table {
     width: 100%;
     border-collapse: collapse;
-    background-color: white;
     margin-top: 10px;
 }
 
-.table th {
+th, td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: center;
+}
+
+th {
     background-color: #343a40;
     color: white;
-    text-align: center;
-    padding: 10px;
 }
 
-.table td {
-    text-align: center;
-    vertical-align: middle;
-    padding: 8px;
-    border-bottom: 1px solid #ddd;
+tbody tr:hover {
+    background-color: #f1f1f1;
 }
 
+/* ✅ Table Responsiveness */
 .table-responsive {
-    overflow-x: auto; /* Allow scrolling on small screens */
+    overflow-x: auto;
 }
 
 /* ✅ Buttons */
-.btn {
-    padding: 10px 15px;
-    font-size: 14px;
-    cursor: pointer;
+button {
+    background-color: #007bff;
+    color: white;
     border: none;
-    border-radius: 5px;
+    padding: 8px 12px;
+    cursor: pointer;
     transition: all 0.3s ease-in-out;
+    border-radius: 5px;
 }
 
-.btn:hover {
-    opacity: 0.8;
+button:hover {
+    background-color: #0056b3;
+    opacity: 0.9;
 }
 
 /* ✅ Forms */
-.form-control {
-    font-size: 14px;
-    padding: 10px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
+input, select, textarea {
     width: 100%;
-    margin-bottom: 10px;
+    padding: 10px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
 }
 
 /* ✅ Modal Styling */
-.modal-content {
-    border-radius: 10px;
-    padding: 20px;
+.modal {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     background: white;
+    padding: 20px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    z-index: 1000;
 }
 
-.modal-header {
+.modal .modal-content {
+    padding: 20px;
+}
+
+.modal .modal-header {
     background-color: #343a40;
     color: white;
-    border-radius: 10px 10px 0 0;
     padding: 15px;
-    text-align: center;
+    border-radius: 10px 10px 0 0;
 }
 
-.modal-footer {
-    border-radius: 0 0 10px 10px;
+.modal .modal-footer {
     padding: 15px;
+    border-radius: 0 0 10px 10px;
     text-align: right;
+}
+
+/* ✅ Close Button for Modal */
+.close {
+    float: right;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+/* ✅ Pagination Styling */
+.pagination {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
 }
 
 /* ✅ Mobile-Friendly Adjustments */
@@ -110,16 +151,23 @@ body {
         text-align: center;
     }
 
-    .table {
+    .menu {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+    }
+
+    table {
         font-size: 12px;
     }
 
-    .btn {
+    button {
         font-size: 14px;
         padding: 8px;
     }
 
-    .form-control {
+    input {
         font-size: 12px;
     }
 }
