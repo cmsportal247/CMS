@@ -95,31 +95,35 @@
     </div>
 
     <!-- ✅ Case Modal -->
-    <div id="addCaseModal" class="modal fade" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Add New Case</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <input type="date" id="caseDate" class="form-control mb-2">
-                    <input type="text" id="caseStaff" class="form-control mb-2" placeholder="Staff">
-                    <input type="text" id="caseMobile" class="form-control mb-2" placeholder="Mobile">
-                    <input type="text" id="caseName" class="form-control mb-2" placeholder="Name">
-                    <input type="text" id="caseWork" class="form-control mb-2" placeholder="Work">
-                    <textarea id="caseRemarks" class="form-control mb-2" placeholder="Remarks"></textarea>
-                    <select id="caseStatus" class="form-control mb-2">
-                        <option value="Pending">Pending</option>
-                        <option value="Resolved">Resolved</option>
-                    </select>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button class="btn btn-primary" onclick="addCase()">Add Case</button>
-                </div>
+<div id="addCaseModal" class="modal fade" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Case</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="date" id="caseDate" class="form-control mb-2">
+                <input type="text" id="caseStaff" class="form-control mb-2" placeholder="Staff">
+                <input type="text" id="caseMobile" class="form-control mb-2" placeholder="Mobile Number">
+                <input type="text" id="caseName" class="form-control mb-2" placeholder="Name">
+                <input type="text" id="caseWork" class="form-control mb-2" placeholder="Work">
+                <input type="text" id="caseInfo" class="form-control mb-2" placeholder="Additional Info">
+                <input type="text" id="casePending" class="form-control mb-2" placeholder="Pending">
+                <textarea id="caseRemarks" class="form-control mb-2" placeholder="Remarks"></textarea>
+                <select id="caseStatus" class="form-control mb-2">
+                    <option value="Pending">Pending</option>
+                    <option value="Resolved">Resolved</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button class="btn btn-primary" onclick="addCase()">Save Case</button>
             </div>
         </div>
+    </div>
+</div>
+
     </div>
 
     <!-- ✅ Bootstrap & Custom Script -->
