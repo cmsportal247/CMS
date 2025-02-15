@@ -9,9 +9,9 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="styles.css">
 </head>
-<body onload="showPage('cases')">
+<body onload="showPage('cases')"> <!-- ✅ Default page is "Cases" -->
 
-    <!-- ✅ Navigation Bar -->
+    <!-- ✅ Navigation Bar (Includes Welcome Text & Logout) -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container-fluid">
             <a class="navbar-brand" href="#">CMS</a>
@@ -40,12 +40,12 @@
         <button type="submit" class="btn btn-primary">Login</button>
     </form>
 
-    <!-- ✅ Main App (Hidden until login) -->
+    <!-- ✅ Main App -->
     <div id="app" class="container mt-4" style="display: none;">
-
+        
         <!-- ✅ Cases List Page -->
         <div id="cases" class="page">
-            <button class="btn btn-primary mb-3" id="newCaseBtn">New Case</button>
+            <button class="btn btn-primary mb-3" id="newCaseBtn" onclick="openNewCaseModal()">New Case</button>
             <input type="text" id="searchInput" class="form-control mb-3" placeholder="Search by Name or Mobile">
 
             <div class="table-responsive">
@@ -57,15 +57,23 @@
                             <th>Mobile</th>
                             <th>Name</th>
                             <th>Work</th>
-                            <th>Information</th>
+                            <th>Info</th>
                             <th>Pending</th>
                             <th>Remarks</th>
-                            <th>Case Status</th>
+                            <th>Status</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="casesTable"></tbody>
+                    <tbody id="casesTable">
+                        <!-- Cases will be loaded here -->
+                    </tbody>
                 </table>
+            </div>
+
+            <div class="d-flex justify-content-between mt-3">
+                <button class="btn btn-secondary" id="prevPage" onclick="changePage(-1)">Previous</button>
+                <span id="pageIndicator">Page 1</span>
+                <button class="btn btn-secondary" id="nextPage" onclick="changePage(1)">Next</button>
             </div>
         </div>
 
@@ -78,9 +86,9 @@
             <button class="btn btn-success" onclick="exportToExcel()">Export to Excel</button>
         </div>
 
-        <!-- ✅ Settings Page (Fixed Visibility) -->
+        <!-- ✅ Settings Page (Password Change) -->
         <div id="settings" class="page" style="display: none;">
-            <form id="changePasswordForm" class="mt-4" onsubmit="event.preventDefault(); changePassword();">
+            <form id="changePasswordForm" onsubmit="event.preventDefault(); changePassword();">
                 <h2>Change Password</h2>
                 <input type="password" id="oldPassword" class="form-control mb-2" placeholder="Old Password" required>
                 <input type="password" id="newPassword" class="form-control mb-2" placeholder="New Password" required>
@@ -88,9 +96,10 @@
                 <button type="submit" class="btn btn-primary">Change Password</button>
             </form>
         </div>
+
     </div>
 
-    <!-- ✅ Bootstrap & Custom JS -->
+    <!-- ✅ Bootstrap JS + Custom JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="app.js"></script>
 
