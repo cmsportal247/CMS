@@ -84,37 +84,42 @@ function logout() {
     location.reload();
 }
 
-// ✅ Fetch Cases with Search
+//✅ Fetch Cases with Debugging
 function fetchCases(searchQuery = "") {
     fetch(`${BASE_URL}/cases?search=${encodeURIComponent(searchQuery)}`)
         .then((response) => response.json())
         .then((data) => {
-            allCases = data;
-            currentPage = 1;
-            displayCases();
+            console.log("✅ Cases received from API:", data); // Debugging log
+            allCases = data; // Store data globally
+            displayCases(); // Call function to show cases
         })
-        .catch((error) => showError("Error fetching cases: " + error.message));
+        .catch((error) => {
+            console.error("❌ Error fetching cases:", error);
+            showError("❌ Failed to fetch cases. Check backend connection.");
+        });
 }
 
-// ✅ Display Cases with Pagination
+// ✅ Display Cases in the Table
 function displayCases() {
     let tableBody = document.getElementById("casesTable");
-    tableBody.innerHTML = "";
+    tableBody.innerHTML = ""; // Clear previous data
 
-    let start = (currentPage - 1) * casesPerPage;
-    let end = start + casesPerPage;
-    let paginatedCases = allCases.slice(start, end);
+    if (allCases.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="10" class="text-center">No cases found</td></tr>`;
+        return;
+    }
 
-    paginatedCases.forEach((caseItem) => {
+    allCases.forEach((caseItem) => {
         let row = document.createElement("tr");
         row.innerHTML = `
-            <td>${caseItem.date_received}</td>
+            <td>${formatDate(caseItem.date_received)}</td>
             <td>${caseItem.staff}</td>
             <td>${caseItem.mobile}</td>
             <td>${caseItem.name}</td>
-            <td>${caseItem.work}</td>
-            <td>${caseItem.pending}</td>
-            <td>${caseItem.remarks}</td>
+            <td>${caseItem.work || "-"}</td>
+            <td>${caseItem.info || "-"}</td>
+            <td>${caseItem.pending || "-"}</td>
+            <td>${caseItem.remarks || "-"}</td>
             <td>${caseItem.status}</td>
             <td>
                 <button class="btn btn-danger btn-sm" onclick="deleteCase(${caseItem.id})">Delete</button>
@@ -125,6 +130,7 @@ function displayCases() {
 
     document.getElementById("pageIndicator").innerText = `Page ${currentPage}`;
 }
+
 
 // ✅ Pagination Controls
 function changePage(step) {
@@ -177,12 +183,18 @@ function addCase() {
         if (data.error) {
             showError(data.error);
         } else {
-            showSuccess("✅ Case added successfully!");
+            showSuccess("✅Case added successfully!");
             fetchCases(); // Refresh case list
             bootstrap.Modal.getInstance(document.getElementById("addCaseModal")).hide(); // Close modal
         }
     })
     .catch((error) => showError("❌ Error adding case: " + error.message));
+}
+// ✅ Format Date (Fix Invalid Dates)
+function formatDate(dateString) {
+    if (!dateString) return "-"; // Handle missing dates
+    let date = new Date(dateString);
+    return date.toLocaleDateString("en-GB"); // Format as DD/MM/YYYY
 }
 
 // ✅ Success/Error Messages
