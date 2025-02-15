@@ -2,13 +2,19 @@ document.addEventListener("DOMContentLoaded", function () {
     updateUI();
     showPage("cases"); // ✅ Default page on load
 
-    // ✅ Fix: Ensure searchInput exists before adding an event listener
+    // ✅ Ensure searchInput exists before adding an event listener
     const searchInput = document.getElementById("searchInput");
     if (searchInput) {
         searchInput.addEventListener("input", function () {
             let searchQuery = this.value.trim();
             fetchCases(searchQuery);
         });
+    }
+
+    // ✅ Ensure saveCaseBtn exists before adding an event listener
+    const saveCaseBtn = document.getElementById("saveCaseBtn");
+    if (saveCaseBtn) {
+        saveCaseBtn.addEventListener("click", saveCase);
     }
 });
 
@@ -18,8 +24,8 @@ let allCases = [];
 let currentPage = 1;
 const casesPerPage = 10;
 
-// ✅ Update Backend URL (Use ngrok, NOT Netlify)
-const BASE_URL = "https://2237-2405-201-c04c-a12a-75d8-6f7d-6499-de33.ngrok-free.app"; 
+// ✅ Correct Backend API URL (Use your ngrok link)
+const BASE_URL = "https://2237-2405-201-c04c-a12a-75d8-6f7d-6499-de33.ngrok-free.app";
 
 // ✅ Function to switch pages
 function showPage(page) {
@@ -83,17 +89,8 @@ function changePage(step) {
     displayCases();
 }
 
-// ✅ Open New Case Modal & Auto-Fill Date
-function openNewCaseModal() {
-    let today = new Date().toISOString().split("T")[0];
-    document.getElementById("caseDate").value = today;
-
-    let modal = new bootstrap.Modal(document.getElementById("newCaseModal"));
-    modal.show();
-}
-
-// ✅ Handle Saving a New Case
-document.getElementById("saveCaseBtn").addEventListener("click", function () {
+// ✅ Save a New Case
+function saveCase() {
     let caseData = {
         date_received: document.getElementById("caseDate").value,
         staff: document.getElementById("caseStaff").value,
@@ -122,7 +119,7 @@ document.getElementById("saveCaseBtn").addEventListener("click", function () {
         bootstrap.Modal.getInstance(document.getElementById("newCaseModal")).hide();
     })
     .catch((error) => showError("Error adding case: " + error.message));
-});
+}
 
 // ✅ Delete Case Function
 function deleteCase(caseId) {
@@ -151,28 +148,6 @@ function openEditModal(caseItem) {
 
     let modal = new bootstrap.Modal(document.getElementById("newCaseModal"));
     modal.show();
-}
-
-// ✅ Handle Login
-function login() {
-    let username = document.getElementById("username").value;
-    let password = document.getElementById("password").value;
-
-    fetch(`${BASE_URL}/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-    })
-    .then((response) => response.json())
-    .then((data) => {
-        if (data.error) {
-            showError(data.error);
-        } else {
-            localStorage.setItem("currentUser", JSON.stringify(data.user));
-            updateUI();
-        }
-    })
-    .catch((error) => showError("Login failed: " + error.message));
 }
 
 // ✅ Update UI Based on Role
