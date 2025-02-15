@@ -175,27 +175,27 @@ function login() {
 }
 
 // // ✅ Update UI Based on Role
-// function updateUI() {
-//     currentUser = JSON.parse(localStorage.getItem("currentUser"));
+function updateUI() {
+    currentUser = JSON.parse(localStorage.getItem("currentUser"));
 
-//     let loginForm = document.getElementById("loginForm");
-//     let appSection = document.getElementById("app");
-//     let welcomeText = document.getElementById("welcomeText");
-//     let logoutBtn = document.getElementById("logoutBtn");
+    let loginForm = document.getElementById("loginForm");
+    let appSection = document.getElementById("app");
+    let welcomeText = document.getElementById("welcomeText");
+    let logoutBtn = document.getElementById("logoutBtn");
 
-//     if (currentUser) {
-//         loginForm.style.display = "none";
-//         appSection.style.display = "block";
-//         welcomeText.innerText = `Welcome, ${currentUser.username} (${currentUser.role})`;
-//         logoutBtn.style.display = "block";
-//         fetchCases();
-//     } else {
-//         loginForm.style.display = "block";
-//         appSection.style.display = "none";
-//         logoutBtn.style.display = "none";
-//         welcomeText.innerText = "";
-//     }
-// }
+    if (currentUser) {
+        loginForm.style.display = "none";
+        appSection.style.display = "block";
+        welcomeText.innerText = `Welcome, ${currentUser.username} (${currentUser.role})`;
+        logoutBtn.style.display = "block";
+        fetchCases();
+    } else {
+        loginForm.style.display = "block";
+        appSection.style.display = "none";
+        logoutBtn.style.display = "none";
+        welcomeText.innerText = "";
+    }
+}
 
 // ✅ Logout
 function logout() {
