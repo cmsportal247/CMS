@@ -14,12 +14,13 @@ function showPage(page) {
     document.querySelectorAll(".page").forEach((p) => p.style.display = "none");
     document.getElementById(page).style.display = "block";
 }
+const BASE_URL = "https://2237-2405-201-c04c-a12a-75d8-6f7d-6499-de33.ngrok-free.app"; // Use your latest ngrok URL
 
 // ✅ Fetch Cases from Backend (With Search Feature)
 function fetchCases(searchQuery = "") {
     if (!currentUser) return;
 
-    fetch(`http://localhost:4000/cases?search=${searchQuery}`)
+    fetch(`${BASE_URL}/cases?search=${encodeURIComponent(searchQuery)}`)
         .then((response) => response.json())
         .then((data) => {
             allCases = data;
