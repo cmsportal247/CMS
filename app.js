@@ -9,12 +9,14 @@ let allCases = [];
 let currentPage = 1;
 const casesPerPage = 10;
 
+// ✅ Update ngrok Backend URL (Always use the latest)
+const BASE_URL = "https://2237-2405-201-c04c-a12a-75d8-6f7d-6499-de33.ngrok-free.app"; 
+
 // ✅ Function to switch pages
 function showPage(page) {
-    document.querySelectorAll(".page").forEach((p) => p.style.display = "none");
+    document.querySelectorAll(".page").forEach((p) => (p.style.display = "none"));
     document.getElementById(page).style.display = "block";
 }
-const BASE_URL = "https://2237-2405-201-c04c-a12a-75d8-6f7d-6499-de33.ngrok-free.app"; // Use your latest ngrok URL
 
 // ✅ Fetch Cases from Backend (With Search Feature)
 function fetchCases(searchQuery = "") {
@@ -106,7 +108,7 @@ document.getElementById("saveCaseBtn").addEventListener("click", function () {
         return;
     }
 
-    fetch("http://localhost:4000/add-case", {
+    fetch(`${BASE_URL}/add-case`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(caseData),
@@ -123,7 +125,7 @@ document.getElementById("saveCaseBtn").addEventListener("click", function () {
 function deleteCase(caseId) {
     if (!confirm("Are you sure you want to delete this case?")) return;
 
-    fetch(`http://localhost:4000/delete-case/${caseId}`, { method: "DELETE" })
+    fetch(`${BASE_URL}/delete-case/${caseId}`, { method: "DELETE" })
         .then((response) => response.json())
         .then(() => {
             showSuccess("Case deleted successfully!");
@@ -153,7 +155,7 @@ function login() {
     let username = document.getElementById("username").value;
     let password = document.getElementById("password").value;
 
-    fetch("http://localhost:4000/login", {
+    fetch(`${BASE_URL}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
