@@ -147,6 +147,43 @@ function deleteCase(caseId) {
         })
         .catch((error) => showError("Error deleting case: " + error.message));
 }
+// ✅ Save New Case (Add Case)
+function addCase() {
+    let caseData = {
+        date_received: document.getElementById("caseDate").value,
+        staff: document.getElementById("caseStaff").value,
+        mobile: document.getElementById("caseMobile").value,
+        name: document.getElementById("caseName").value,
+        work: document.getElementById("caseWork").value,
+        info: document.getElementById("caseInfo").value,
+        pending: document.getElementById("casePending").value,
+        remarks: document.getElementById("caseRemarks").value,
+        status: document.getElementById("caseStatus").value,
+    };
+
+    // ✅ Validate Required Fields
+    if (!caseData.date_received || !caseData.staff || !caseData.mobile || !caseData.name || caseData.mobile.length !== 10) {
+        showError("❌ Please fill all required fields correctly.");
+        return;
+    }
+
+    fetch(`${BASE_URL}/add-case`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(caseData),
+    })
+    .then((response) => response.json())
+    .then((data) => {
+        if (data.error) {
+            showError(data.error);
+        } else {
+            showSuccess("✅ Case added successfully!");
+            fetchCases(); // Refresh case list
+            bootstrap.Modal.getInstance(document.getElementById("addCaseModal")).hide(); // Close modal
+        }
+    })
+    .catch((error) => showError("❌ Error adding case: " + error.message));
+}
 
 // ✅ Success/Error Messages
 function showSuccess(message) {
