@@ -82,8 +82,9 @@ function login() {
 function logout() {
     localStorage.removeItem("currentUser");
     location.reload();
-}
-function fetchCases(searchQuery = "") {
+}function fetchCases(searchQuery = "") {
+    console.log("🔄 Fetching cases...");
+
     fetch(`${BASE_URL}/cases?search=${encodeURIComponent(searchQuery)}`)
         .then((response) => {
             if (!response.ok) {
@@ -92,8 +93,8 @@ function fetchCases(searchQuery = "") {
             return response.json();
         })
         .then((data) => {
-            console.log("✅ Cases received:", data); // Debugging log
-            allCases = data; // Store cases globally
+            console.log("✅ Cases received from API:", data); // Debugging log
+            allCases = data;
             displayCases(); // Show cases in UI
         })
         .catch((error) => {
