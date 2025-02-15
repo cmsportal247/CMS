@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ✅ Backend API URL (Update this with your latest Ngrok URL)
-const BASE_URL = "https://9743-2405-201-c04c-a12a-75d8-6f7d-6499-de33.ngrok-free.app"; 
+const BASE_URL = "https://75d0-2405-201-c04c-a12a-75d8-6f7d-6499-de33.ngrok-free.app"; 
 
 let currentUser = null;
 let allCases = [];
