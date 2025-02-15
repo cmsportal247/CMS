@@ -83,21 +83,25 @@ function logout() {
     localStorage.removeItem("currentUser");
     location.reload();
 }
-
-//✅ Fetch Cases with Debugging
 function fetchCases(searchQuery = "") {
     fetch(`${BASE_URL}/cases?search=${encodeURIComponent(searchQuery)}`)
-        .then((response) => response.json())
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then((data) => {
-            console.log("✅ Cases received from API:", data); // Debugging log
-            allCases = data; // Store data globally
-            displayCases(); // Call function to show cases
+            console.log("✅ Cases received:", data); // Debugging log
+            allCases = data; // Store cases globally
+            displayCases(); // Show cases in UI
         })
         .catch((error) => {
             console.error("❌ Error fetching cases:", error);
             showError("❌ Failed to fetch cases. Check backend connection.");
         });
 }
+
 
 // ✅ Display Cases in the Table
 function displayCases() {
