@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 // ✅ Global Variables
-const BASE_URL = "https://2237-2405-201-c04c-a12a-75d8-6f7d-6499-de33.ngrok-free.app"; 
+const BASE_URL = "https://a9ea-2405-201-c04c-a12a-75d8-6f7d-6499-de33.ngrok-free.app"; 
 
 function showPage(page) {
     document.querySelectorAll(".page").forEach((p) => (p.style.display = "none"));
