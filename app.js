@@ -82,20 +82,25 @@ function login() {
 function logout() {
     localStorage.removeItem("currentUser");
     location.reload();
-}function fetchCases(searchQuery = "") {
-    console.log("🔄 Fetching cases...");
+}
+
+function fetchCases(searchQuery = "") {
+    console.log("🔄 Fetching cases from:", `${BASE_URL}/cases?search=${encodeURIComponent(searchQuery)}`);
 
     fetch(`${BASE_URL}/cases?search=${encodeURIComponent(searchQuery)}`)
-        .then((response) => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
-            return response.json();
-        })
+        .then((response) => response.text()) // <-- TEMP FIX: Read response as text
         .then((data) => {
-            console.log("✅ Cases received from API:", data); // Debugging log
-            allCases = data;
-            displayCases(); // Show cases in UI
+            console.log("✅ Raw API Response:", data); // Debugging log
+
+            try {
+                let jsonData = JSON.parse(data); // Convert to JSON
+                console.log("✅ Cases received:", jsonData);
+                allCases = jsonData;
+                displayCases();
+            } catch (error) {
+                console.error("❌ JSON Parsing Error:", error);
+                showError("❌ Failed to fetch cases. Backend is returning an invalid response.");
+            }
         })
         .catch((error) => {
             console.error("❌ Error fetching cases:", error);
