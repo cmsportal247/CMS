@@ -1,0 +1,130 @@
+/* ✅ General Styles */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f8f9fa;
+    margin: 0;
+    padding: 0;
+}
+
+/* ✅ Navbar Styling */
+.navbar {
+    padding: 10px;
+}
+
+.navbar-brand {
+    font-weight: bold;
+    font-size: 20px;
+}
+
+/* ✅ Page Layout */
+.page {
+    display: none; /* Hide all pages by default */
+    padding: 20px;
+}
+
+.active {
+    display: block !important; /* Show active page */
+}
+
+/* ✅ Table Styling */
+.table {
+    font-size: 14px;
+}
+
+.table th {
+    background-color: #343a40;
+    color: white;
+    text-align: center;
+}
+
+.table td {
+    text-align: center;
+    vertical-align: middle;
+}
+
+.table-responsive {
+    overflow-x: auto; /* Allow scrolling on small screens */
+}
+
+/* ✅ Buttons */
+.btn {
+    transition: all 0.3s ease-in-out;
+}
+
+.btn:hover {
+    opacity: 0.8;
+}
+
+/* ✅ Forms */
+.form-control {
+    font-size: 14px;
+}
+
+/* ✅ Modal Styling */
+.modal-content {
+    border-radius: 10px;
+}
+
+.modal-header {
+    background-color: #343a40;
+    color: white;
+    border-radius: 10px 10px 0 0;
+}
+
+.modal-footer {
+    border-radius: 0 0 10px 10px;
+}
+
+/* ✅ Mobile-Friendly Adjustments */
+@media (max-width: 768px) {
+    .navbar-nav {
+        text-align: center;
+    }
+
+    .table {
+        font-size: 12px;
+    }
+
+    .btn {
+        font-size: 14px;
+        padding: 10px;
+    }
+
+    .form-control {
+        font-size: 12px;
+    }
+}
+
+/* ✅ Modal Enhancements */
+.modal-content {
+    border-radius: 10px;
+    padding: 20px;
+}
+
+.modal-header {
+    background-color: #343a40;
+    color: white;
+    border-radius: 10px 10px 0 0;
+    padding: 15px;
+}
+
+.modal-footer {
+    border-radius: 0 0 10px 10px;
+    padding: 15px;
+}
+
+/* ✅ Input & Form Enhancements */
+.form-control {
+    font-size: 14px;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+/* ✅ Button Styling */
+.btn {
+    transition: all 0.3s ease-in-out;
+}
+
+.btn:hover {
+    opacity: 0.8;
+}
