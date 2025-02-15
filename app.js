@@ -2,6 +2,15 @@ document.addEventListener("DOMContentLoaded", function () {
     updateUI();
     showPage("cases"); // ✅ Default page on load
 
+    // ✅ Fix: Ensure searchInput exists before adding an event listener
+    const searchInput = document.getElementById("searchInput");
+    if (searchInput) {
+        searchInput.addEventListener("input", function () {
+            let searchQuery = this.value.trim();
+            fetchCases(searchQuery);
+        });
+    }
+});
 
 // ✅ Global Variables
 let currentUser = null;
@@ -9,7 +18,7 @@ let allCases = [];
 let currentPage = 1;
 const casesPerPage = 10;
 
-// ✅ Update ngrok Backend URL (Always use the latest)
+// ✅ Update Backend URL (Use ngrok, NOT Netlify)
 const BASE_URL = "https://2237-2405-201-c04c-a12a-75d8-6f7d-6499-de33.ngrok-free.app"; 
 
 // ✅ Function to switch pages
@@ -73,14 +82,6 @@ function changePage(step) {
     currentPage += step;
     displayCases();
 }
-  // ✅ Fix: Check if searchInput exists before adding event listener
-    const searchInput = document.getElementById("searchInput");
-    if (searchInput) {
-        searchInput.addEventListener("input", function () {
-            let searchQuery = this.value.trim();
-            fetchCases(searchQuery);
-        });
-    }
 
 // ✅ Open New Case Modal & Auto-Fill Date
 function openNewCaseModal() {
@@ -174,7 +175,7 @@ function login() {
     .catch((error) => showError("Login failed: " + error.message));
 }
 
-// // ✅ Update UI Based on Role
+// ✅ Update UI Based on Role
 function updateUI() {
     currentUser = JSON.parse(localStorage.getItem("currentUser"));
 
