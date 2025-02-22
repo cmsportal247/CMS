@@ -4,7 +4,8 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ✅ Backend API URL (Update this with your latest Ngrok URL)
-const API_BASE_URL = "https://backend-7l9n.onrender.com";
+const API_URL = "https://backend-7l9n.onrender.com";
+
   // Your Render/Railway URL
 
 fetch(`${API_URL}/cases`)
