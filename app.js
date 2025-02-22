@@ -3,15 +3,8 @@ document.addEventListener("DOMContentLoaded", () => {
     showPage("cases");
 });
 
-// ✅ Backend API URL (Update this with your latest Ngrok URL)
+// ✅ Backend API URL (Update this with your latest Render or Railway URL)
 const API_URL = "https://backend-7l9n.onrender.com";
-
-  // Your Render/Railway URL
-
-fetch(`${API_URL}/cases`)
-    .then(response => response.json())
-    .then(data => console.log(data));
-
 
 let currentUser = null;
 let allCases = [];
@@ -28,11 +21,11 @@ function showPage(page) {
         console.error(`❌ Page ${page} not found.`);
     }
 }
+
 // ✅ Open Add Case Modal
 function openAddCaseModal() {
-    console.log("Opening Add Case Modal..."); // Debugging log
+    console.log("Opening Add Case Modal..."); 
     let modalElement = document.getElementById("addCaseModal");
-    
     if (modalElement) {
         let modal = new bootstrap.Modal(modalElement);
         modal.show();
@@ -40,7 +33,6 @@ function openAddCaseModal() {
         console.error("❌ Modal with ID 'addCaseModal' not found.");
     }
 }
-
 
 // ✅ Update UI After Login
 function updateUI() {
@@ -68,7 +60,7 @@ function login() {
     let username = document.getElementById("username").value.trim();
     let password = document.getElementById("password").value.trim();
 
-    fetch(`${BASE_URL}/login`, {
+    fetch(`${API_URL}/login`, { // FIXED
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
@@ -90,10 +82,12 @@ function logout() {
     localStorage.removeItem("currentUser");
     location.reload();
 }
-function fetchCases(searchQuery = "") {
-    console.log("🔄 Fetching cases from:", `${BASE_URL}/cases?search=${encodeURIComponent(searchQuery)}`);
 
-    fetch(`${BASE_URL}/cases?search=${encodeURIComponent(searchQuery)}`)
+// ✅ Fetch Cases
+function fetchCases(searchQuery = "") {
+    console.log("🔄 Fetching cases from:", `${API_URL}/cases?search=${encodeURIComponent(searchQuery)}`);
+
+    fetch(`${API_URL}/cases?search=${encodeURIComponent(searchQuery)}`) // FIXED
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
@@ -111,16 +105,21 @@ function fetchCases(searchQuery = "") {
         });
 }
 
+// ✅ Display Cases
 function displayCases() {
     let tableBody = document.getElementById("casesTable");
-    tableBody.innerHTML = ""; // Clear previous data
+    tableBody.innerHTML = ""; 
 
     if (allCases.length === 0) {
         tableBody.innerHTML = `<tr><td colspan="10" class="text-center">No cases found</td></tr>`;
         return;
     }
 
-    allCases.forEach((caseItem) => {
+    const startIndex = (currentPage - 1) * casesPerPage;
+    const endIndex = startIndex + casesPerPage;
+    const casesToDisplay = allCases.slice(startIndex, endIndex);
+
+    casesToDisplay.forEach((caseItem) => {
         let row = document.createElement("tr");
         row.innerHTML = `
             <td>${formatDate(caseItem.date_received)}</td>
@@ -133,15 +132,14 @@ function displayCases() {
             <td>${caseItem.remarks || "-"}</td>
             <td>${caseItem.status}</td>
             <td>
-                <button class="btn btn-danger btn-sm" onclick="deleteCase(${caseItem.id})">Delete</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteCase('${caseItem.id}')">Delete</button>
             </td>
         `;
         tableBody.appendChild(row);
     });
 
-    document.getElementById("pageIndicator").innerText = `Page ${currentPage}`;
+    document.getElementById("pageIndicator").innerText = `Page ${currentPage} of ${Math.ceil(allCases.length / casesPerPage)}`;
 }
-
 
 // ✅ Pagination Controls
 function changePage(step) {
@@ -152,11 +150,11 @@ function changePage(step) {
     }
 }
 
-// ✅ Delete Case Function
+// ✅ Delete Case
 function deleteCase(caseId) {
     if (!confirm("Are you sure you want to delete this case?")) return;
 
-    fetch(`${BASE_URL}/delete-case/${caseId}`, { method: "DELETE" })
+    fetch(`${API_URL}/delete-case/${caseId}`, { method: "DELETE" }) // FIXED
         .then((response) => response.json())
         .then(() => {
             showSuccess("Case deleted successfully!");
@@ -164,6 +162,7 @@ function deleteCase(caseId) {
         })
         .catch((error) => showError("Error deleting case: " + error.message));
 }
+
 // ✅ Save New Case (Add Case)
 function addCase() {
     let caseData = {
@@ -178,13 +177,12 @@ function addCase() {
         status: document.getElementById("caseStatus").value,
     };
 
-    // ✅ Validate Required Fields
     if (!caseData.date_received || !caseData.staff || !caseData.mobile || !caseData.name || caseData.mobile.length !== 10) {
         showError("❌ Please fill all required fields correctly.");
         return;
     }
 
-    fetch(`${BASE_URL}/add-case`, {
+    fetch(`${API_URL}/add-case`, { // FIXED
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(caseData),
@@ -194,18 +192,19 @@ function addCase() {
         if (data.error) {
             showError(data.error);
         } else {
-            showSuccess("✅Case added successfully!");
-            fetchCases(); // Refresh case list
-            bootstrap.Modal.getInstance(document.getElementById("addCaseModal")).hide(); // Close modal
+            showSuccess("✅ Case added successfully!");
+            fetchCases();
+            bootstrap.Modal.getInstance(document.getElementById("addCaseModal")).hide(); 
         }
     })
     .catch((error) => showError("❌ Error adding case: " + error.message));
 }
-// ✅ Format Date (Fix Invalid Dates)
+
+// ✅ Format Date
 function formatDate(dateString) {
-    if (!dateString) return "-"; // Handle missing dates
+    if (!dateString) return "-";
     let date = new Date(dateString);
-    return date.toLocaleDateString("en-GB"); // Format as DD/MM/YYYY
+    return date.toLocaleDateString("en-GB"); 
 }
 
 // ✅ Success/Error Messages
