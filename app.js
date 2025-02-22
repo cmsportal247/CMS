@@ -4,7 +4,12 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ✅ Backend API URL (Update this with your latest Ngrok URL)
-const BASE_URL = "https://backend-bmtu.onrender.com/"; 
+const API_URL = "https://backend-bmtu.onrender.com/";  // Your Render/Railway URL
+
+fetch(`${API_URL}/cases`)
+    .then(response => response.json())
+    .then(data => console.log(data));
+
 
 let currentUser = null;
 let allCases = [];
