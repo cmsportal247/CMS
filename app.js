@@ -1,4 +1,4 @@
-const API_URL = "https://2237-2405-201-c04c-a12a-75d8-6f7d-6499-de33.ngrok-free.app";
+const API_URL = "https://backend-7l9n.onrender.com";
 
 let currentPage = 1;
 let pageSize = 10;
