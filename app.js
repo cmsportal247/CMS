@@ -82,7 +82,7 @@ function updateCase() {
 function updateUI() {
     currentUser = JSON.parse(localStorage.getItem("currentUser")) || null;
 
-    if (currentUser) {
+    if (currentUser && currentUser.username) {
         document.getElementById("loginForm").style.display = "none";
         document.getElementById("app").style.display = "block";
         document.getElementById("welcomeText").innerText = `Welcome, ${currentUser.username}`;
@@ -131,7 +131,10 @@ function fetchCases(searchQuery = "") {
             allCases = data;
             displayCases();
         })
-        .catch((error) => showError("Failed to fetch cases: " + error.message));
+        .catch((error) => {
+            console.error("Failed to fetch cases:", error);
+            showError("Failed to fetch cases: " + error.message);
+        });
 }
 
 // ✅ Display Cases
@@ -171,6 +174,25 @@ function displayCases() {
     document.getElementById("pageIndicator").innerText = `Page ${currentPage} of ${Math.ceil(allCases.length / casesPerPage)}`;
 }
 
+// ✅ Delete Case
+function deleteCase(caseId) {
+    if (!confirm("Are you sure you want to delete this case?")) return;
+
+    fetch(`${API_URL}/delete-case/${caseId}`, {
+        method: "DELETE",
+    })
+        .then((response) => response.json())
+        .then((data) => {
+            if (data.error) {
+                showError(data.error);
+            } else {
+                showSuccess("Case deleted successfully!");
+                fetchCases();
+            }
+        })
+        .catch((error) => showError("Error deleting case: " + error.message));
+}
+
 // ✅ Change Password
 function changePassword() {
     const oldPassword = document.getElementById("oldPassword").value.trim();
@@ -198,5 +220,10 @@ function showSuccess(message) {
 }
 
 function showError(message) {
-    alert("❌ " + message);
+    alert("❌" + message);
+}
+
+// ✅ Format Date
+function formatDate(date) {
+    return new Date(date).toLocaleDateString();
 }
