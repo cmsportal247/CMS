@@ -3,6 +3,42 @@ let allCases = [];
 let currentPage = 1;
 const casesPerPage = 10;
 
+// 🟩 Login function
+function login() {
+    const username = document.getElementById("loginUsername").value;
+    const password = document.getElementById("loginPassword").value;
+
+    fetch(`${API_URL}/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+    })
+    .then((response) => response.json())
+    .then((data) => {
+        if (data.token) {
+            localStorage.setItem("token", data.token);
+            showSuccess("Login successful!");
+            updateUI(); // Refresh UI after login
+        } else {
+            showError("Invalid username or password");
+        }
+    })
+    .catch((error) => showError("Login failed: " + error.message));
+}
+
+// 🟩 Update UI after login
+function updateUI() {
+    const token = localStorage.getItem("token");
+    if (token) {
+        document.getElementById("loginSection").style.display = "none";
+        document.getElementById("appSection").style.display = "block";
+        fetchCases();
+    } else {
+        document.getElementById("loginSection").style.display = "block";
+        document.getElementById("appSection").style.display = "none";
+    }
+}
+
 // 🟩 Fetch all cases
 function fetchCases() {
     fetch(`${API_URL}/cases`)
@@ -21,6 +57,10 @@ function displayCases() {
     const paginatedCases = allCases.slice(start, end);
 
     const tableBody = document.getElementById("caseTableBody");
+    if (!tableBody) {
+        console.error("caseTableBody element not found!");
+        return;
+    }
     tableBody.innerHTML = "";
 
     paginatedCases.forEach((caseItem) => {
@@ -71,13 +111,13 @@ function addCase() {
         info: document.getElementById("addInfo").value,
         pending: document.getElementById("addPending").value,
         remarks: document.getElementById("addRemarks").value,
-        status: document.getElementById("addStatus").value
+        status: document.getElementById("addStatus").value,
     };
 
     fetch(`${API_URL}/add-case`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newCase)
+        body: JSON.stringify(newCase),
     })
     .then((response) => response.json())
     .then((data) => {
@@ -91,60 +131,11 @@ function addCase() {
     .catch((error) => showError("Error adding case: " + error.message));
 }
 
-// 🟩 Open edit case modal
-function openEditCaseModal(caseItem) {
-    document.getElementById("editCaseId").value = caseItem.id;
-    document.getElementById("editDateReceived").value = caseItem.date_received;
-    document.getElementById("editStaff").value = caseItem.staff;
-    document.getElementById("editMobile").value = caseItem.mobile;
-    document.getElementById("editName").value = caseItem.name;
-    document.getElementById("editWork").value = caseItem.work;
-    document.getElementById("editInfo").value = caseItem.info;
-    document.getElementById("editPending").value = caseItem.pending;
-    document.getElementById("editRemarks").value = caseItem.remarks;
-    document.getElementById("editStatus").value = caseItem.status;
-
-    document.getElementById("editCaseModal").style.display = "block";
-}
-
-// 🟩 Update an existing case
-function updateCase() {
-    const updatedCase = {
-        id: document.getElementById("editCaseId").value,
-        date_received: document.getElementById("editDateReceived").value,
-        staff: document.getElementById("editStaff").value,
-        mobile: document.getElementById("editMobile").value,
-        name: document.getElementById("editName").value,
-        work: document.getElementById("editWork").value,
-        info: document.getElementById("editInfo").value,
-        pending: document.getElementById("editPending").value,
-        remarks: document.getElementById("editRemarks").value,
-        status: document.getElementById("editStatus").value
-    };
-
-    fetch(`${API_URL}/update-case`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updatedCase)
-    })
-    .then((response) => response.json())
-    .then((data) => {
-        if (data.error) {
-            showError(data.error);
-        } else {
-            showSuccess("Case updated successfully!");
-            fetchCases();
-            closeModal();
-        }
-    })
-    .catch((error) => showError("Error updating case: " + error.message));
-}
-
 // 🟩 Delete a case
 function deleteCase(caseId) {
     if (confirm("Are you sure you want to delete this case?")) {
         fetch(`${API_URL}/delete-case/${caseId}`, {
-            method: "DELETE"
+            method: "DELETE",
         })
         .then((response) => response.json())
         .then((data) => {
@@ -159,26 +150,29 @@ function deleteCase(caseId) {
     }
 }
 
-// 🟩 Close modals
-function closeModal() {
-    document.getElementById("editCaseModal").style.display = "none";
-}
-
 // 🟩 Show success message
 function showSuccess(message) {
     const successDiv = document.getElementById("successMessage");
-    successDiv.innerText = message;
-    successDiv.style.display = "block";
-    setTimeout(() => successDiv.style.display = "none", 3000);
+    if (successDiv) {
+        successDiv.innerText = message;
+        successDiv.style.display = "block";
+        setTimeout(() => successDiv.style.display = "none", 3000);
+    } else {
+        console.warn("Success message element not found!");
+    }
 }
 
 // 🟩 Show error message
 function showError(message) {
     const errorDiv = document.getElementById("errorMessage");
-    errorDiv.innerText = message;
-    errorDiv.style.display = "block";
-    setTimeout(() => errorDiv.style.display = "none", 3000);
+    if (errorDiv) {
+        errorDiv.innerText = message;
+        errorDiv.style.display = "block";
+        setTimeout(() => errorDiv.style.display = "none", 3000);
+    } else {
+        console.warn("Error message element not found!");
+    }
 }
 
 // 🟩 Initialize app
-fetchCases();
+updateUI();
