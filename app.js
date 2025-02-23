@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
     showPage("cases");
 });
 
-// ✅ Backend API URL (Update this with your deployed URL)
+// ✅ Backend API URL
 const API_URL = "https://backend-7l9n.onrender.com";
 
 let currentUser = null;
@@ -14,7 +14,7 @@ const casesPerPage = 10;
 // ✅ Show Page
 function showPage(page) {
     document.querySelectorAll(".page").forEach((p) => p.style.display = "none");
-    document.getElementById(page).style.display = "block";
+    document.getElementById(page).style.display = "block");
 }
 
 // ✅ Open Add Case Modal
@@ -22,6 +22,60 @@ function openAddCaseModal() {
     let modalElement = document.getElementById("addCaseModal");
     let modal = new bootstrap.Modal(modalElement);
     modal.show();
+}
+
+// ✅ Open Edit Case Modal (Double Click)
+function openEditCaseModal(caseId) {
+    const selectedCase = allCases.find((c) => c.id === caseId);
+    if (!selectedCase) return;
+
+    document.getElementById("editCaseId").value = selectedCase.id;
+    document.getElementById("editDateReceived").value = formatDate(selectedCase.date_received);
+    document.getElementById("editStaff").value = selectedCase.staff || "";
+    document.getElementById("editMobile").value = selectedCase.mobile || "";
+    document.getElementById("editName").value = selectedCase.name || "";
+    document.getElementById("editWork").value = selectedCase.work || "";
+    document.getElementById("editInfo").value = selectedCase.info || "";
+    document.getElementById("editPending").value = selectedCase.pending || "";
+    document.getElementById("editRemarks").value = selectedCase.remarks || "";
+    document.getElementById("editStatus").value = selectedCase.status || "";
+
+    let modalElement = document.getElementById("editCaseModal");
+    let modal = new bootstrap.Modal(modalElement);
+    modal.show();
+}
+
+// ✅ Update Case
+function updateCase() {
+    const caseId = document.getElementById("editCaseId").value;
+
+    const updatedCase = {
+        date_received: document.getElementById("editDateReceived").value,
+        staff: document.getElementById("editStaff").value,
+        mobile: document.getElementById("editMobile").value,
+        name: document.getElementById("editName").value,
+        work: document.getElementById("editWork").value,
+        info: document.getElementById("editInfo").value,
+        pending: document.getElementById("editPending").value,
+        remarks: document.getElementById("editRemarks").value,
+        status: document.getElementById("editStatus").value,
+    };
+
+    fetch(`${API_URL}/update-case/${caseId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedCase),
+    })
+        .then((response) => response.json())
+        .then((data) => {
+            if (data.error) {
+                showError(data.error);
+            } else {
+                showSuccess("Case updated successfully!");
+                fetchCases();
+            }
+        })
+        .catch((error) => showError("Error updating case: " + error.message));
 }
 
 // ✅ Update UI After Login
@@ -51,16 +105,16 @@ function login() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
     })
-    .then((response) => response.json())
-    .then((data) => {
-        if (data.error) {
-            showError(data.error);
-        } else {
-            localStorage.setItem("currentUser", JSON.stringify(data.user));
-            updateUI();
-        }
-    })
-    .catch((error) => showError("Login failed: " + error.message));
+        .then((response) => response.json())
+        .then((data) => {
+            if (data.error) {
+                showError(data.error);
+            } else {
+                localStorage.setItem("currentUser", JSON.stringify(data.user));
+                updateUI();
+            }
+        })
+        .catch((error) => showError("Login failed: " + error.message));
 }
 
 // ✅ Logout
@@ -69,7 +123,7 @@ function logout() {
     location.reload();
 }
 
-// ✅ Fetch Cases
+// ✅ Fetch Cases (with Search)
 function fetchCases(searchQuery = "") {
     fetch(`${API_URL}/cases?search=${encodeURIComponent(searchQuery)}`)
         .then((response) => response.json())
@@ -109,38 +163,33 @@ function displayCases() {
                 <button class="btn btn-danger btn-sm" onclick="deleteCase('${caseItem.id}')">Delete</button>
             </td>
         `;
+
+        row.ondblclick = () => openEditCaseModal(caseItem.id);
         tableBody.appendChild(row);
     });
 
     document.getElementById("pageIndicator").innerText = `Page ${currentPage} of ${Math.ceil(allCases.length / casesPerPage)}`;
 }
 
-// ✅ Change Page
-function changePage(step) {
-    let maxPage = Math.ceil(allCases.length / casesPerPage);
-    if (currentPage + step > 0 && currentPage + step <= maxPage) {
-        currentPage += step;
-        displayCases();
-    }
-}
+// ✅ Change Password
+function changePassword() {
+    const oldPassword = document.getElementById("oldPassword").value.trim();
+    const newPassword = document.getElementById("newPassword").value.trim();
 
-// ✅ Delete Case
-function deleteCase(caseId) {
-    if (!confirm("Are you sure you want to delete this case?")) return;
-
-    fetch(`${API_URL}/delete-case/${caseId}`, { method: "DELETE" })
-        .then(() => {
-            showSuccess("Case deleted successfully!");
-            fetchCases();
+    fetch(`${API_URL}/change-password`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: currentUser.username, oldPassword, newPassword }),
+    })
+        .then((response) => response.json())
+        .then((data) => {
+            if (data.error) {
+                showError(data.error);
+            } else {
+                showSuccess("Password changed successfully!");
+            }
         })
-        .catch((error) => showError("Error deleting case: " + error.message));
-}
-
-// ✅ Format Date
-function formatDate(dateString) {
-    if (!dateString) return "-";
-    let date = new Date(dateString);
-    return date.toLocaleDateString("en-GB");
+        .catch((error) => showError("Error changing password: " + error.message));
 }
 
 // ✅ Success/Error Messages
