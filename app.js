@@ -1,178 +1,187 @@
-const API_URL = "https://backend-7l9n.onrender.com";
-let allCases = [];
-let currentPage = 1;
-const casesPerPage = 10;
+const API_URL = "https://2237-2405-201-c04c-a12a-75d8-6f7d-6499-de33.ngrok-free.app";
 
-// 🟩 Login function
+let currentPage = 1;
+let pageSize = 10;
+
+// ✅ Show/Hide pages
+function showPage(pageId) {
+    document.querySelectorAll('.page').forEach(page => page.style.display = 'none');
+    const selectedPage = document.getElementById(pageId);
+    if (selectedPage) selectedPage.style.display = 'block';
+}
+
+// ✅ Login function
 function login() {
-    const username = document.getElementById("loginUsername").value;
-    const password = document.getElementById("loginPassword").value;
+    const username = document.getElementById("username")?.value;
+    const password = document.getElementById("password")?.value;
+
+    if (!username || !password) {
+        showError("Please enter username and password");
+        return;
+    }
 
     fetch(`${API_URL}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
     })
-    .then((response) => response.json())
-    .then((data) => {
+    .then(res => res.json())
+    .then(data => {
         if (data.token) {
             localStorage.setItem("token", data.token);
+            localStorage.setItem("username", username);
             showSuccess("Login successful!");
-            updateUI(); // Refresh UI after login
+            updateUI();
         } else {
-            showError("Invalid username or password");
+            showError("Invalid credentials");
         }
     })
-    .catch((error) => showError("Login failed: " + error.message));
+    .catch(err => showError("Login failed: " + err.message));
 }
 
-// 🟩 Update UI after login
+// ✅ Logout function
+function logout() {
+    localStorage.removeItem("token");
+    localStorage.removeItem("username");
+    updateUI();
+    showSuccess("Logged out successfully");
+}
+
+// ✅ Update UI based on login
 function updateUI() {
     const token = localStorage.getItem("token");
+    const username = localStorage.getItem("username");
+
+    const loginForm = document.getElementById("loginForm");
+    const appSection = document.getElementById("app");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const welcomeText = document.getElementById("welcomeText");
+
     if (token) {
-        document.getElementById("loginSection").style.display = "none";
-        document.getElementById("appSection").style.display = "block";
+        loginForm.style.display = "none";
+        appSection.style.display = "block";
+        logoutBtn.style.display = "block";
+        welcomeText.innerText = `Welcome, ${username || 'User'}`;
         fetchCases();
     } else {
-        document.getElementById("loginSection").style.display = "block";
-        document.getElementById("appSection").style.display = "none";
+        loginForm.style.display = "block";
+        appSection.style.display = "none";
+        logoutBtn.style.display = "none";
+        welcomeText.innerText = "";
     }
 }
 
-// 🟩 Fetch all cases
-function fetchCases() {
-    fetch(`${API_URL}/cases`)
-        .then((response) => response.json())
-        .then((data) => {
-            allCases = data;
-            displayCases();
-        })
-        .catch((error) => showError("Error fetching cases: " + error.message));
+// ✅ Fetch and display cases
+function fetchCases(query = "") {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    fetch(`${API_URL}/cases?search=${query}`, {
+        headers: { "Authorization": `Bearer ${token}` }
+    })
+    .then(res => res.json())
+    .then(data => renderCases(data))
+    .catch(err => showError("Failed to fetch cases: " + err.message));
 }
 
-// 🟩 Display cases with pagination
-function displayCases() {
-    const start = (currentPage - 1) * casesPerPage;
-    const end = start + casesPerPage;
-    const paginatedCases = allCases.slice(start, end);
+// ✅ Render cases in the table
+function renderCases(cases) {
+    const casesTable = document.getElementById("casesTable");
+    if (!casesTable) return;
 
-    const tableBody = document.getElementById("caseTableBody");
-    if (!tableBody) {
-        console.error("caseTableBody element not found!");
-        return;
-    }
-    tableBody.innerHTML = "";
+    casesTable.innerHTML = "";
 
-    paginatedCases.forEach((caseItem) => {
-        const row = tableBody.insertRow();
+    const start = (currentPage - 1) * pageSize;
+    const paginatedCases = cases.slice(start, start + pageSize);
+
+    paginatedCases.forEach((caseData, index) => {
+        const row = casesTable.insertRow();
         row.innerHTML = `
-            <td>${caseItem.date_received}</td>
-            <td>${caseItem.staff}</td>
-            <td>${caseItem.mobile}</td>
-            <td>${caseItem.name}</td>
-            <td>${caseItem.work}</td>
-            <td>${caseItem.info}</td>
-            <td>${caseItem.pending}</td>
-            <td>${caseItem.remarks}</td>
-            <td>${caseItem.status}</td>
-            <td><button onclick="deleteCase('${caseItem.id}')">Delete</button></td>
+            <td>${caseData.date}</td>
+            <td>${caseData.staff}</td>
+            <td>${caseData.mobile}</td>
+            <td>${caseData.name}</td>
+            <td>${caseData.work}</td>
+            <td>${caseData.info}</td>
+            <td>${caseData.pending}</td>
+            <td>${caseData.remarks}</td>
+            <td>${caseData.status}</td>
+            <td>
+                <button class="btn btn-warning btn-sm" onclick="openEditCaseModal('${caseData.id}')">Edit</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteCase('${caseData.id}')">Delete</button>
+            </td>
         `;
-        row.ondblclick = () => openEditCaseModal(caseItem);
     });
 
-    updatePaginationControls();
+    document.getElementById("pageIndicator").innerText = `Page ${currentPage}`;
 }
 
-// 🟩 Update pagination controls
-function updatePaginationControls() {
-    const totalPages = Math.ceil(allCases.length / casesPerPage);
-    document.getElementById("pageInfo").innerText = `Page ${currentPage} of ${totalPages}`;
-}
-
-// 🟩 Change page
+// ✅ Pagination
 function changePage(direction) {
-    const totalPages = Math.ceil(allCases.length / casesPerPage);
     currentPage += direction;
-
     if (currentPage < 1) currentPage = 1;
-    if (currentPage > totalPages) currentPage = totalPages;
-
-    displayCases();
+    fetchCases();
 }
 
-// 🟩 Add a new case
+// ✅ Add new case
 function addCase() {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
     const newCase = {
-        date_received: document.getElementById("addDateReceived").value,
-        staff: document.getElementById("addStaff").value,
-        mobile: document.getElementById("addMobile").value,
-        name: document.getElementById("addName").value,
-        work: document.getElementById("addWork").value,
-        info: document.getElementById("addInfo").value,
-        pending: document.getElementById("addPending").value,
-        remarks: document.getElementById("addRemarks").value,
-        status: document.getElementById("addStatus").value,
+        date: document.getElementById("caseDate").value,
+        staff: document.getElementById("caseStaff").value,
+        mobile: document.getElementById("caseMobile").value,
+        name: document.getElementById("caseName").value,
+        work: document.getElementById("caseWork").value,
+        info: document.getElementById("caseInfo").value,
+        pending: document.getElementById("casePending").value,
+        remarks: document.getElementById("caseRemarks").value,
+        status: document.getElementById("caseStatus").value
     };
 
     fetch(`${API_URL}/add-case`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newCase),
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(newCase)
     })
-    .then((response) => response.json())
-    .then((data) => {
-        if (data.error) {
-            showError(data.error);
-        } else {
-            showSuccess("Case added successfully!");
-            fetchCases();
-        }
+    .then(res => res.json())
+    .then(() => {
+        showSuccess("Case added successfully");
+        fetchCases();
     })
-    .catch((error) => showError("Error adding case: " + error.message));
+    .catch(err => showError("Failed to add case: " + err.message));
 }
 
-// 🟩 Delete a case
+// ✅ Delete case
 function deleteCase(caseId) {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
     if (confirm("Are you sure you want to delete this case?")) {
         fetch(`${API_URL}/delete-case/${caseId}`, {
             method: "DELETE",
+            headers: { "Authorization": `Bearer ${token}` }
         })
-        .then((response) => response.json())
-        .then((data) => {
-            if (data.error) {
-                showError(data.error);
-            } else {
-                showSuccess("Case deleted successfully!");
-                fetchCases();
-            }
+        .then(() => {
+            showSuccess("Case deleted successfully");
+            fetchCases();
         })
-        .catch((error) => showError("Error deleting case: " + error.message));
+        .catch(err => showError("Failed to delete case: " + err.message));
     }
 }
 
-// 🟩 Show success message
+// ✅ Success and error messages
 function showSuccess(message) {
-    const successDiv = document.getElementById("successMessage");
-    if (successDiv) {
-        successDiv.innerText = message;
-        successDiv.style.display = "block";
-        setTimeout(() => successDiv.style.display = "none", 3000);
-    } else {
-        console.warn("Success message element not found!");
-    }
+    alert(message);
 }
 
-// 🟩 Show error message
 function showError(message) {
-    const errorDiv = document.getElementById("errorMessage");
-    if (errorDiv) {
-        errorDiv.innerText = message;
-        errorDiv.style.display = "block";
-        setTimeout(() => errorDiv.style.display = "none", 3000);
-    } else {
-        console.warn("Error message element not found!");
-    }
+    alert("Error: " + message);
 }
 
-// 🟩 Initialize app
-updateUI();
+// ✅ Initialize UI
+window.onload = updateUI;
