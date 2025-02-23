@@ -14,7 +14,7 @@ const casesPerPage = 10;
 // ✅ Show Page
 function showPage(page) {
     document.querySelectorAll(".page").forEach((p) => p.style.display = "none");
-    document.getElementById(page).style.display = "block");
+    document.getElementById(page).style.display = "block";
 }
 
 // ✅ Open Add Case Modal
