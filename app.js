@@ -1,5 +1,8 @@
+// 🚀 Set the API URL
+const API_URL = "https://backend-7l9n.onrender.com"; // Replace with your backend URL
+
+// 🚀 Handle page load
 document.addEventListener("DOMContentLoaded", () => {
-    const API_URL = "https://backend-7l9n.onrender.com"; // Update with your Render backend URL
     const token = localStorage.getItem("token");
 
     // 🚀 Check if user is logged in
@@ -27,8 +30,13 @@ function login() {
         return;
     }
 
-    const username = usernameInput.value;
-    const password = passwordInput.value;
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value.trim();
+
+    if (!username || !password) {
+        alert("Please enter both username and password!");
+        return;
+    }
 
     fetch(`${API_URL}/login`, {
         method: "POST",
@@ -49,7 +57,6 @@ function login() {
     .catch(error => console.error("Login failed:", error));
 }
 
-
 // 🚀 Logout function
 function logout() {
     localStorage.clear();
@@ -67,7 +74,10 @@ function fetchCases() {
         }
         return response.json();
     })
-    .then(cases => renderCases(cases))
+    .then(cases => {
+        localStorage.setItem("cases", JSON.stringify(cases)); // Store cases locally
+        renderCases(cases);
+    })
     .catch(error => console.error("Failed to fetch cases:", error));
 }
 
@@ -175,4 +185,9 @@ function openEditModal(index) {
     } else {
         alert("Case not found!");
     }
+}
+
+// 🚀 Optional: Update UI function
+function updateUI() {
+    console.log("UI updated!");
 }
