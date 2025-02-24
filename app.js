@@ -94,7 +94,7 @@ function renderCases(cases) {
     const start = (currentPage - 1) * pageSize;
     const paginatedCases = cases.slice(start, start + pageSize);
 
-    paginatedCases.forEach((caseData, index) => {
+    paginatedCases.forEach((caseData) => {
         const row = casesTable.insertRow();
         row.innerHTML = `
             <td>${caseData.date}</td>
@@ -123,7 +123,7 @@ function changePage(direction) {
     fetchCases();
 }
 
-// ✅ Add new case
+// ✅ Add new case (with modal)
 function addCase() {
     const token = localStorage.getItem("token");
     if (!token) return;
@@ -151,9 +151,16 @@ function addCase() {
     .then(res => res.json())
     .then(() => {
         showSuccess("Case added successfully");
+        closeAddCaseModal();
         fetchCases();
     })
     .catch(err => showError("Failed to add case: " + err.message));
+}
+
+// ✅ Edit case (open modal)
+function openEditCaseModal(caseId) {
+    alert(`Open edit modal for case ID: ${caseId}`);
+    // You can load the case details and pre-fill the form here
 }
 
 // ✅ Delete case
@@ -172,6 +179,15 @@ function deleteCase(caseId) {
         })
         .catch(err => showError("Failed to delete case: " + err.message));
     }
+}
+
+// ✅ Modal handling
+function openAddCaseModal() {
+    document.getElementById("addCaseModal").style.display = "block";
+}
+
+function closeAddCaseModal() {
+    document.getElementById("addCaseModal").style.display = "none";
 }
 
 // ✅ Success and error messages
