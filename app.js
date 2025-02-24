@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const API_URL = "https://your-render-backend-url.onrender.com"; // Update with your Render backend URL
+    const API_URL = "https://backend-7l9n.onrender.com"; // Update with your Render backend URL
     const token = localStorage.getItem("token");
 
     // 🚀 Check if user is logged in
