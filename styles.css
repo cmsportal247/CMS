@@ -17,6 +17,11 @@ body {
     font-weight: bold;
     font-size: 20px;
 }
+/* ✅ Set width to 98% for cases section */
+#cases {
+    width: 98%;
+    margin: 0 auto; /* Center the section */
+}
 
 /* ✅ Page Layout */
 .page {
@@ -72,7 +77,7 @@ body {
 /* ✅ Modal Styling */
 .modal-content {
     border-radius: 10px;
-    padding: 20px;
+    padding: 12px;
 }
 
 .modal-header {
