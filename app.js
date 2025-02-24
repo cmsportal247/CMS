@@ -1,5 +1,5 @@
 // 🚀 Set the API URL
-const API_URL = "https://backend-7l9n.onrender.com"; // Replace with your backend URL
+const API_URL = "https://backend-7l9n.onrender.com"; // Update with your actual backend URL
 
 // 🚀 Handle page load
 document.addEventListener("DOMContentLoaded", () => {
@@ -7,18 +7,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 🚀 Check if user is logged in
     if (token) {
-        const authButtons = document.getElementById("auth-buttons");
-        if (authButtons) {
-            authButtons.innerHTML = `
-                <span>Welcome, ${localStorage.getItem("username")}!</span>
-                <button onclick="logout()" class="btn btn-danger">Logout</button>
-            `;
-        }
+        updateNavbar();
         fetchCases();
     } else {
         window.location.href = "login.html";
     }
 });
+
+// 🚀 Update Navbar
+function updateNavbar() {
+    const authButtons = document.getElementById("auth-buttons");
+    const username = localStorage.getItem("username");
+
+    if (authButtons && username) {
+        authButtons.innerHTML = `
+            <span>Welcome, ${username}!</span>
+            <button onclick="logout()" class="btn btn-danger">Logout</button>
+        `;
+    }
+}
 
 // 🚀 Login function
 function login() {
@@ -64,9 +71,11 @@ function logout() {
 }
 
 // 🚀 Fetch cases from the backend
-function fetchCases() {
-    fetch(`${API_URL}/cases`, {
-        headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` },
+function fetchCases(query = "", page = 1, pageSize = 10) {
+    const token = localStorage.getItem("token");
+
+    fetch(`${API_URL}/cases?search=${query}&page=${page}&pageSize=${pageSize}`, {
+        headers: { "Authorization": `Bearer ${token}` },
     })
     .then(response => {
         if (!response.ok) {
@@ -74,9 +83,10 @@ function fetchCases() {
         }
         return response.json();
     })
-    .then(cases => {
-        localStorage.setItem("cases", JSON.stringify(cases)); // Store cases locally
-        renderCases(cases);
+    .then(data => {
+        localStorage.setItem("cases", JSON.stringify(data.cases)); // Store cases locally
+        renderCases(data.cases);
+        updatePagination(data.totalPages, page);
     })
     .catch(error => console.error("Failed to fetch cases:", error));
 }
@@ -105,6 +115,7 @@ function renderCases(cases) {
                 <td>${caseItem.status || ''}</td>
                 ${localStorage.getItem("role") === "admin" ? `
                     <td>
+                        <button class="btn btn-warning" onclick="openEditModal(${index})">Edit</button>
                         <button class="btn btn-danger" onclick="deleteCase('${caseItem.id}')">Delete</button>
                     </td>` : ""}
             </tr>
@@ -113,8 +124,30 @@ function renderCases(cases) {
     });
 }
 
+// 🚀 Pagination
+function updatePagination(totalPages, currentPage) {
+    const paginationElement = document.getElementById("pagination");
+    if (!paginationElement) return;
+
+    paginationElement.innerHTML = `
+        <button ${currentPage === 1 ? "disabled" : ""} onclick="changePage(-1)">Previous</button>
+        <span>Page ${currentPage} of ${totalPages}</span>
+        <button ${currentPage === totalPages ? "disabled" : ""} onclick="changePage(1)">Next</button>
+    `;
+}
+
+let currentPage = 1;
+
+function changePage(direction) {
+    currentPage += direction;
+    fetchCases("", currentPage);
+}
+
 // 🚀 Add new case
 function addCase() {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
     const caseData = {
         date: document.getElementById("date")?.value || "",
         staff: document.getElementById("staff")?.value || "",
@@ -136,7 +169,7 @@ function addCase() {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${localStorage.getItem("token")}`,
+            "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify(caseData),
     })
@@ -150,10 +183,13 @@ function addCase() {
 
 // 🚀 Delete case
 function deleteCase(caseId) {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
     if (confirm("Are you sure you want to delete this case?")) {
         fetch(`${API_URL}/delete-case/${caseId}`, {
             method: "DELETE",
-            headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` },
+            headers: { "Authorization": `Bearer ${token}` },
         })
         .then(response => response.json())
         .then(data => {
@@ -185,9 +221,4 @@ function openEditModal(index) {
     } else {
         alert("Case not found!");
     }
-}
-
-// 🚀 Optional: Update UI function
-function updateUI() {
-    console.log("UI updated!");
 }
