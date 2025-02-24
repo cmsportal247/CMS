@@ -45,8 +45,9 @@
         
         <!-- ✅ Cases List Page -->
         <div id="cases" class="page">
-            <h2>Cases List</h2>
-            <button class="btn btn-primary mb-3" onclick="openAddCaseModal()">+ Add Case</button>
+            <h2>Cases List</h2><!-- ✅ Button to Open Modal -->
+            <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addCaseModal">+ Add Case</button>
+
             <input type="text" id="searchInput" class="form-control mb-3" placeholder="Search by Name or Mobile" onkeyup="fetchCases(this.value)">
 
             <div class="table-responsive">
