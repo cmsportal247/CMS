@@ -19,8 +19,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // 🚀 Login function
 function login() {
-    const usernameInput = document.getElementById("login-username");
-    const passwordInput = document.getElementById("login-password");
+    const usernameInput = document.getElementById("username");
+    const passwordInput = document.getElementById("password");
 
     if (!usernameInput || !passwordInput) {
         alert("Login fields not found!");
@@ -30,28 +30,25 @@ function login() {
     const username = usernameInput.value;
     const password = passwordInput.value;
 
-    if (username && password) {
-        fetch(`${API_URL}/login`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username, password }),
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.token) {
-                localStorage.setItem("token", data.token);
-                localStorage.setItem("username", data.user.username);
-                localStorage.setItem("role", data.user.role);
-                window.location.href = "index.html";
-            } else {
-                alert("Invalid credentials. Please try again.");
-            }
-        })
-        .catch(error => console.error("Login failed:", error));
-    } else {
-        alert("Please fill in both fields.");
-    }
+    fetch(`${API_URL}/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.token) {
+            localStorage.setItem("token", data.token);
+            localStorage.setItem("username", data.user.username);
+            localStorage.setItem("role", data.user.role);
+            window.location.href = "index.html";
+        } else {
+            alert("Invalid credentials. Please try again.");
+        }
+    })
+    .catch(error => console.error("Login failed:", error));
 }
+
 
 // 🚀 Logout function
 function logout() {
