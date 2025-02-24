@@ -3,15 +3,9 @@ const API_URL = "https://backend-7l9n.onrender.com"; // Update with your actual 
 
 // 🚀 Handle page load
 document.addEventListener("DOMContentLoaded", () => {
-    const token = localStorage.getItem("token");
-
-    // 🚀 Check if user is logged in
-    if (token) {
         updateNavbar();
         fetchCases();
-    } else {
-        window.location.href = "login.html";
-    }
+ 
 });
 
 // 🚀 Update Navbar
