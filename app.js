@@ -4,13 +4,13 @@ let currentEditingCaseId = null;
 let casesList = [];
 
 // -------------------
-// Utility: Toast
+// Toast Utility
 // -------------------
 function showToast(message) {
-  const toastEl = document.getElementById("toast");
   const toastMsgEl = document.getElementById("toastMessage");
   if (toastMsgEl) {
     toastMsgEl.innerText = message;
+    const toastEl = document.getElementById("toast");
     const toast = new bootstrap.Toast(toastEl);
     toast.show();
   }
@@ -41,7 +41,7 @@ async function login() {
     const response = await fetch(`${apiBaseUrl}/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ username, password })
     });
     const data = await response.json();
     if (response.ok && data.token) {
@@ -50,16 +50,16 @@ async function login() {
       showToast("Login successful!");
       checkAndHandleToken();
     } else {
-      showToast(data.message || "Invalid credentials");
+      showToast(data.message || "Login failed");
     }
   } catch (error) {
-    showToast("Error logging in");
+    showToast("Error during login");
   }
 }
 
 function logout() {
   localStorage.clear();
-  showToast("Logged out!");
+  showToast("Logged out");
   checkAndHandleToken();
 }
 
@@ -68,13 +68,16 @@ function showSection(sectionId) {
   document.getElementById("casesSection").style.display = "none";
   document.getElementById("reportsSection").style.display = "none";
   document.getElementById("settingsSection").style.display = "none";
-  // Also remove active class from nav tabs
-  document.querySelectorAll(".nav-link").forEach((el) => el.classList.remove("active"));
-  // Show the selected section and add active class
+  // Show the selected section
   document.getElementById(sectionId).style.display = "block";
-  if (sectionId === "casesSection") document.querySelector("a[onclick*='casesSection']").classList.add("active");
-  if (sectionId === "reportsSection") document.querySelector("a[onclick*='reportsSection']").classList.add("active");
-  if (sectionId === "settingsSection") document.querySelector("a[onclick*='settingsSection']").classList.add("active");
+  // Update nav tabs active class
+  document.querySelectorAll(".nav-link").forEach(link => link.classList.remove("active"));
+  if (sectionId === "casesSection")
+    document.querySelector("a[onclick*='casesSection']").classList.add("active");
+  if (sectionId === "reportsSection")
+    document.querySelector("a[onclick*='reportsSection']").classList.add("active");
+  if (sectionId === "settingsSection")
+    document.querySelector("a[onclick*='settingsSection']").classList.add("active");
 }
 
 // -------------------
@@ -84,17 +87,16 @@ async function fetchCases() {
   const token = localStorage.getItem("token");
   const searchQuery = document.getElementById("searchInput").value || "";
   try {
-    // Use DynamoDB cases endpoint (/CustomerCases)
     const response = await fetch(
       `${apiBaseUrl}/CustomerCases?page=${currentPage}&search=${encodeURIComponent(searchQuery)}`,
       { headers: { "Authorization": `Bearer ${token}` } }
     );
     if (response.ok) {
       const result = await response.json();
-      // Expecting result to have a "cases" array; adjust if your backend sends data differently.
+      // Assume the response returns an object with a "cases" array.
       casesList = result.cases || [];
       renderCasesTable(casesList);
-      // If you have pagination data, you can update currentPage/totalPages here.
+      document.getElementById("pageIndicator").innerText = `Page ${currentPage}`;
     } else {
       showToast("Failed to fetch cases");
     }
@@ -107,10 +109,10 @@ function renderCasesTable(cases) {
   const tableBody = document.getElementById("casesTable");
   tableBody.innerHTML = "";
   if (cases.length === 0) {
-    tableBody.innerHTML = "<tr><td colspan='8' class='text-center'>No cases found.</td></tr>";
+    tableBody.innerHTML = `<tr><td colspan="8" class="text-center">No cases found.</td></tr>`;
     return;
   }
-  cases.forEach((c) => {
+  cases.forEach(c => {
     tableBody.innerHTML += `
       <tr>
         <td>${c.dateReceived || ""}</td>
@@ -139,7 +141,6 @@ function changePage(offset) {
 // Cases: Add & Edit Modal
 // -------------------
 function showAddCaseModal() {
-  // Reset modal fields for adding a new case
   currentEditingCaseId = null;
   document.getElementById("caseModalLabel").innerText = "Add New Case";
   document.getElementById("caseDate").value = "";
@@ -154,7 +155,7 @@ function showAddCaseModal() {
 }
 
 function editCase(id) {
-  const caseToEdit = casesList.find((c) => c._id === id);
+  const caseToEdit = casesList.find(c => c._id === id);
   if (!caseToEdit) {
     showToast("Case not found");
     return;
@@ -181,30 +182,27 @@ async function saveCase() {
     name: document.getElementById("caseName").value,
     work: document.getElementById("caseWork").value,
     remarks: document.getElementById("caseRemarks").value,
-    status: document.getElementById("caseStatus").value,
+    status: document.getElementById("caseStatus").value
   };
-
   try {
     let response;
     if (currentEditingCaseId) {
-      // Update existing case via PUT /CustomerCases/{id}
       response = await fetch(`${apiBaseUrl}/CustomerCases/${currentEditingCaseId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
+          "Authorization": `Bearer ${token}`
         },
-        body: JSON.stringify(caseData),
+        body: JSON.stringify(caseData)
       });
     } else {
-      // Add new case via POST /CustomerCases
       response = await fetch(`${apiBaseUrl}/CustomerCases`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
+          "Authorization": `Bearer ${token}`
         },
-        body: JSON.stringify(caseData),
+        body: JSON.stringify(caseData)
       });
     }
     if (response.ok) {
@@ -231,7 +229,7 @@ async function deleteCase(id) {
   try {
     const response = await fetch(`${apiBaseUrl}/CustomerCases/${id}`, {
       method: "DELETE",
-      headers: { "Authorization": `Bearer ${token}` },
+      headers: { "Authorization": `Bearer ${token}` }
     });
     if (response.ok) {
       showToast("Case deleted!");
@@ -270,9 +268,9 @@ async function changePassword() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
+        "Authorization": `Bearer ${token}`
       },
-      body: JSON.stringify({ oldPassword, newPassword }),
+      body: JSON.stringify({ oldPassword, newPassword })
     });
     if (response.ok) {
       showToast("Password changed successfully!");
