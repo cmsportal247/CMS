@@ -45,6 +45,8 @@
             <h3>Customer Cases</h3>
             <input id="searchInput" class="form-control mb-3" placeholder="Search by Name/Mobile/Status" onkeyup="fetchCases()">
             
+            <button class="btn btn-success mb-3" onclick="showAddCaseModal()">Add New Case</button>
+
             <table class="table table-bordered">
                 <thead>
                     <tr>
@@ -81,6 +83,34 @@
             <input id="newPassword" class="form-control mb-2" type="password" placeholder="New Password">
             <input id="confirmPassword" class="form-control mb-2" type="password" placeholder="Confirm Password">
             <button class="btn btn-warning" onclick="changePassword()">Change Password</button>
+        </div>
+    </div>
+</div>
+
+<!-- ✅ Add/Edit Case Modal -->
+<div class="modal fade" id="caseModal" tabindex="-1" aria-labelledby="caseModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="caseModalLabel">Add/Edit Case</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input id="caseDate" class="form-control mb-2" type="date">
+                <input id="caseStaff" class="form-control mb-2" placeholder="Staff">
+                <input id="caseMobile" class="form-control mb-2" placeholder="Mobile">
+                <input id="caseName" class="form-control mb-2" placeholder="Name">
+                <input id="caseWork" class="form-control mb-2" placeholder="Work">
+                <textarea id="caseRemarks" class="form-control mb-2" placeholder="Remarks"></textarea>
+                <select id="caseStatus" class="form-select mb-2">
+                    <option value="Pending">Pending</option>
+                    <option value="Completed">Completed</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button id="saveCaseBtn" class="btn btn-primary" onclick="saveCase()">Save Case</button>
+            </div>
         </div>
     </div>
 </div>
