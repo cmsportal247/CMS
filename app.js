@@ -50,7 +50,7 @@ async function login() {
       showToast("Login successful!");
       checkAndHandleToken();
     } else {
-      showToast(data.message || "Login failed");
+      showToast(data.error || "Login failed");
     }
   } catch (error) {
     showToast("Error during login");
@@ -68,7 +68,7 @@ function showSection(sectionId) {
   document.getElementById("casesSection").style.display = "none";
   document.getElementById("reportsSection").style.display = "none";
   document.getElementById("settingsSection").style.display = "none";
-  // Show the selected section
+  // Show selected section
   document.getElementById(sectionId).style.display = "block";
   // Update nav tabs active class
   document.querySelectorAll(".nav-link").forEach(link => link.classList.remove("active"));
@@ -87,21 +87,22 @@ async function fetchCases() {
   const token = localStorage.getItem("token");
   const searchQuery = document.getElementById("searchInput").value || "";
   try {
-    const response = await fetch(
-      `${apiBaseUrl}/CustomerCases?page=${currentPage}&search=${encodeURIComponent(searchQuery)}`,
-      { headers: { "Authorization": `Bearer ${token}` } }
-    );
+    // Use GET /cases endpoint (backend returns an array of cases)
+    const response = await fetch(`${apiBaseUrl}/cases?search=${encodeURIComponent(searchQuery)}`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
     if (response.ok) {
-      const result = await response.json();
-      // Assume the response returns an object with a "cases" array.
-      casesList = result.cases || [];
+      // The backend returns an array of cases (not paginated)
+      const cases = await response.json();
+      casesList = cases;
       renderCasesTable(casesList);
       document.getElementById("pageIndicator").innerText = `Page ${currentPage}`;
     } else {
-      showToast("Failed to fetch cases");
+      const errorText = await response.text();
+      showToast("Failed to fetch cases: " + errorText);
     }
   } catch (error) {
-    showToast("Error fetching cases");
+    showToast("Error fetching cases: " + error.message);
   }
 }
 
@@ -115,16 +116,16 @@ function renderCasesTable(cases) {
   cases.forEach(c => {
     tableBody.innerHTML += `
       <tr>
-        <td>${c.dateReceived || ""}</td>
+        <td>${c.date || ""}</td>
         <td>${c.staff || ""}</td>
         <td>${c.mobile || ""}</td>
         <td>${c.name || ""}</td>
         <td>${c.work || ""}</td>
-        <td>${c.remarks || ""}</td>
+        <td>${c.info || ""}</td>
         <td>${c.status || ""}</td>
         <td>
-          <button class="btn btn-warning btn-sm" onclick="editCase('${c._id}')">Edit</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteCase('${c._id}')">Delete</button>
+          <button class="btn btn-warning btn-sm" onclick="editCase('${c.id}')">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteCase('${c.id}')">Delete</button>
         </td>
       </tr>
     `;
@@ -134,6 +135,7 @@ function renderCasesTable(cases) {
 function changePage(offset) {
   currentPage += offset;
   if (currentPage < 1) currentPage = 1;
+  // Since backend does not paginate, this is just for display.
   fetchCases();
 }
 
@@ -155,19 +157,20 @@ function showAddCaseModal() {
 }
 
 function editCase(id) {
-  const caseToEdit = casesList.find(c => c._id === id);
+  // Find case by id from casesList (backend uses field "id")
+  const caseToEdit = casesList.find(c => c.id === id);
   if (!caseToEdit) {
     showToast("Case not found");
     return;
   }
   currentEditingCaseId = id;
   document.getElementById("caseModalLabel").innerText = "Edit Case";
-  document.getElementById("caseDate").value = caseToEdit.dateReceived || "";
+  document.getElementById("caseDate").value = caseToEdit.date || "";
   document.getElementById("caseStaff").value = caseToEdit.staff || "";
   document.getElementById("caseMobile").value = caseToEdit.mobile || "";
   document.getElementById("caseName").value = caseToEdit.name || "";
   document.getElementById("caseWork").value = caseToEdit.work || "";
-  document.getElementById("caseRemarks").value = caseToEdit.remarks || "";
+  document.getElementById("caseRemarks").value = caseToEdit.info || "";
   document.getElementById("caseStatus").value = caseToEdit.status || "Pending";
   const modal = new bootstrap.Modal(document.getElementById("caseModal"));
   modal.show();
@@ -176,18 +179,19 @@ function editCase(id) {
 async function saveCase() {
   const token = localStorage.getItem("token");
   const caseData = {
-    dateReceived: document.getElementById("caseDate").value,
+    date: document.getElementById("caseDate").value,
     staff: document.getElementById("caseStaff").value,
     mobile: document.getElementById("caseMobile").value,
     name: document.getElementById("caseName").value,
     work: document.getElementById("caseWork").value,
-    remarks: document.getElementById("caseRemarks").value,
+    info: document.getElementById("caseRemarks").value,
     status: document.getElementById("caseStatus").value
   };
   try {
     let response;
     if (currentEditingCaseId) {
-      response = await fetch(`${apiBaseUrl}/CustomerCases/${currentEditingCaseId}`, {
+      // If update endpoint is not implemented on backend, this will fail.
+      response = await fetch(`${apiBaseUrl}/update-case/${currentEditingCaseId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -196,7 +200,7 @@ async function saveCase() {
         body: JSON.stringify(caseData)
       });
     } else {
-      response = await fetch(`${apiBaseUrl}/CustomerCases`, {
+      response = await fetch(`${apiBaseUrl}/add-case`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -213,7 +217,7 @@ async function saveCase() {
       fetchCases();
     } else {
       const errorData = await response.json();
-      showToast(errorData.message || "Operation failed");
+      showToast(errorData.error || "Operation failed");
     }
   } catch (error) {
     showToast("Error saving case");
@@ -227,7 +231,7 @@ async function deleteCase(id) {
   if (!confirm("Are you sure you want to delete this case?")) return;
   const token = localStorage.getItem("token");
   try {
-    const response = await fetch(`${apiBaseUrl}/CustomerCases/${id}`, {
+    const response = await fetch(`${apiBaseUrl}/delete-case/${id}`, {
       method: "DELETE",
       headers: { "Authorization": `Bearer ${token}` }
     });
@@ -276,7 +280,7 @@ async function changePassword() {
       showToast("Password changed successfully!");
     } else {
       const errorData = await response.json();
-      showToast(errorData.message || "Failed to change password");
+      showToast(errorData.error || "Failed to change password");
     }
   } catch (error) {
     showToast("Error changing password");
