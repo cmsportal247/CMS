@@ -53,6 +53,7 @@ async function login() {
       showToast(data.error || "Login failed");
     }
   } catch (error) {
+    console.error("Login error:", error);
     showToast("Error during login");
   }
 }
@@ -99,8 +100,10 @@ async function fetchCases() {
     } else {
       const errorText = await response.text();
       showToast("Failed to fetch cases: " + errorText);
+      console.error("Fetch cases error:", response.status, errorText);
     }
   } catch (error) {
+    console.error("Error fetching cases:", error);
     showToast("Error fetching cases: " + error.message);
   }
 }
@@ -134,7 +137,6 @@ function renderCasesTable(cases) {
 function changePage(offset) {
   currentPage += offset;
   if (currentPage < 1) currentPage = 1;
-  // (Since backend is not paginated, this just refetches all cases.)
   fetchCases();
 }
 
@@ -185,10 +187,16 @@ async function saveCase() {
     info: document.getElementById("caseRemarks").value,
     status: document.getElementById("caseStatus").value
   };
+
   try {
     let response;
     if (currentEditingCaseId) {
-      // Call update endpoint; ensure your backend implements this.
+      // If update functionality is not yet implemented on the backend,
+      // you can show an alert and prevent saving.
+      alert("Update functionality is not implemented yet.");
+      return;
+      // Uncomment below if you implement the update endpoint.
+      /*
       response = await fetch(`${apiBaseUrl}/update-case/${currentEditingCaseId}`, {
         method: "PUT",
         headers: {
@@ -197,6 +205,7 @@ async function saveCase() {
         },
         body: JSON.stringify(caseData)
       });
+      */
     } else {
       response = await fetch(`${apiBaseUrl}/add-case`, {
         method: "POST",
@@ -207,7 +216,7 @@ async function saveCase() {
         body: JSON.stringify(caseData)
       });
     }
-    if (response.ok) {
+    if (response && response.ok) {
       showToast(currentEditingCaseId ? "Case updated!" : "Case added!");
       const modalEl = document.getElementById("caseModal");
       const modal = bootstrap.Modal.getInstance(modalEl);
@@ -218,7 +227,8 @@ async function saveCase() {
       showToast(errorData.error || "Operation failed");
     }
   } catch (error) {
-    showToast("Error saving case");
+    console.error("Error saving case:", error);
+    showToast("Error saving case: " + error.message);
   }
 }
 
@@ -240,7 +250,8 @@ async function deleteCase(id) {
       showToast("Failed to delete case");
     }
   } catch (error) {
-    showToast("Error deleting case");
+    console.error("Error deleting case:", error);
+    showToast("Error deleting case: " + error.message);
   }
 }
 
@@ -281,6 +292,7 @@ async function changePassword() {
       showToast(errorData.error || "Failed to change password");
     }
   } catch (error) {
-    showToast("Error changing password");
+    console.error("Error changing password:", error);
+    showToast("Error changing password: " + error.message);
   }
 }
