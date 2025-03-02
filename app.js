@@ -67,10 +67,13 @@ function logout() {
 }
 
 function showSection(sectionId) {
+  // Hide all sections
   document.getElementById("casesSection").style.display = "none";
   document.getElementById("reportsSection").style.display = "none";
   document.getElementById("settingsSection").style.display = "none";
+  // Show selected section
   document.getElementById(sectionId).style.display = "block";
+  // Update nav tabs active class
   document.querySelectorAll(".nav-link").forEach(link => link.classList.remove("active"));
   if (sectionId === "casesSection")
     document.querySelector("a[onclick*='casesSection']").classList.add("active");
@@ -91,6 +94,7 @@ async function fetchCases() {
       headers: { "Authorization": `Bearer ${token}` }
     });
     if (response.ok) {
+      // Backend returns an array of cases
       const cases = await response.json();
       casesList = cases;
       renderCasesPage();
@@ -193,9 +197,6 @@ async function saveCase() {
     name: document.getElementById("caseName").value,
     work: document.getElementById("caseWork").value,
     info: document.getElementById("caseRemarks").value,
-    // Sending both 'info' and 'remarks' as same value, and default pending as false.
-    remarks: document.getElementById("caseRemarks").value,
-    pending: false,
     status: document.getElementById("caseStatus").value
   };
 
