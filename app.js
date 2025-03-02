@@ -191,11 +191,10 @@ async function saveCase() {
   try {
     let response;
     if (currentEditingCaseId) {
-      // If update functionality is not yet implemented on the backend,
-      // you can show an alert and prevent saving.
+      // Update functionality is not implemented yet.
       alert("Update functionality is not implemented yet.");
       return;
-      // Uncomment below if you implement the update endpoint.
+      // Once implemented, uncomment the following:
       /*
       response = await fetch(`${apiBaseUrl}/update-case/${currentEditingCaseId}`, {
         method: "PUT",
