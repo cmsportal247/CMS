@@ -1,218 +1,201 @@
-// 🚀 Set the API URL
-const API_URL = "https://backend-7l9n.onrender.com"; // Update with your actual backend URL
+// ✅ API Base URL (Render API)
+const API_BASE_URL = "https://backend-7l9n.onrender.com"; 
 
-// 🚀 Handle page load
-document.addEventListener("DOMContentLoaded", () => {
-        updateNavbar();
-        fetchCases();
- 
-});
-
-// 🚀 Update Navbar
-function updateNavbar() {
-    const authButtons = document.getElementById("auth-buttons");
-    const username = localStorage.getItem("username");
-
-    if (authButtons && username) {
-        authButtons.innerHTML = `
-            <span>Welcome, ${username}!</span>
-            <button onclick="logout()" class="btn btn-danger">Logout</button>
-        `;
-    }
+// ✅ Show Toast Notifications
+function showToast(message, type = "success") {
+    const toastContainer = document.getElementById("toastContainer");
+    const toast = document.createElement("div");
+    toast.className = `toast align-items-center text-bg-${type} border-0 show`;
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">${message}</div>
+            <button type="button" class="btn-close me-2 m-auto" onclick="this.parentElement.parentElement.remove()"></button>
+        </div>
+    `;
+    toastContainer.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
 }
 
-// 🚀 Login function
-function login() {
-    const usernameInput = document.getElementById("username");
-    const passwordInput = document.getElementById("password");
+// ✅ Show Loading Spinner
+function showLoading(show) {
+    document.getElementById("loadingSpinner").style.display = show ? "block" : "none";
+}
 
-    if (!usernameInput || !passwordInput) {
-        alert("Login fields not found!");
-        return;
-    }
-
-    const username = usernameInput.value.trim();
-    const password = passwordInput.value.trim();
+// ✅ Login Function
+async function login() {
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
 
     if (!username || !password) {
-        alert("Please enter both username and password!");
+        showToast("Please enter both username and password", "danger");
         return;
     }
 
-    fetch(`${API_URL}/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.token) {
-            localStorage.setItem("token", data.token);
-            localStorage.setItem("username", data.user.username);
-            localStorage.setItem("role", data.user.role);
-            window.location.href = "index.html";
+    try {
+        showLoading(true);
+        const response = await fetch(`${API_BASE_URL}/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password })
+        });
+        const result = await response.json();
+        showLoading(false);
+
+        if (response.ok) {
+            localStorage.setItem("token", result.token);
+            localStorage.setItem("user", JSON.stringify(result.user));
+            updateUI();
+            showToast("Login successful!", "success");
         } else {
-            alert("Invalid credentials. Please try again.");
+            showToast(result.error || "Invalid credentials", "danger");
         }
-    })
-    .catch(error => console.error("Login failed:", error));
-}
-
-// 🚀 Logout function
-function logout() {
-    localStorage.clear();
-    window.location.href = "login.html";
-}
-
-// 🚀 Fetch cases from the backend
-function fetchCases(query = "", page = 1, pageSize = 10) {
-    const token = localStorage.getItem("token");
-
-    fetch(`${API_URL}/cases?search=${query}&page=${page}&pageSize=${pageSize}`, {
-        headers: { "Authorization": `Bearer ${token}` },
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error("Failed to fetch cases");
-        }
-        return response.json();
-    })
-    .then(data => {
-        localStorage.setItem("cases", JSON.stringify(data.cases)); // Store cases locally
-        renderCases(data.cases);
-        updatePagination(data.totalPages, page);
-    })
-    .catch(error => console.error("Failed to fetch cases:", error));
-}
-
-// 🚀 Render cases in the table
-function renderCases(cases) {
-    const tableBody = document.getElementById("cases-table-body");
-    if (!tableBody) {
-        console.error("Table body element not found!");
-        return;
+    } catch (error) {
+        showLoading(false);
+        showToast("Server error! Please try again.", "danger");
     }
+}
 
+// ✅ Logout Function
+function logout() {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    updateUI();
+}
+
+// ✅ Update UI (Login/Logout)
+function updateUI() {
+    const token = localStorage.getItem("token");
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    document.getElementById("loginForm").style.display = token ? "none" : "block";
+    document.getElementById("app").style.display = token ? "block" : "none";
+    document.getElementById("logoutBtn").style.display = token ? "block" : "none";
+    document.getElementById("welcomeText").innerText = token ? `Welcome, ${user.username}` : "";
+
+    if (token) fetchCases();
+}
+
+// ✅ Fetch Cases from Backend
+async function fetchCases(search = "") {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+        showLoading(true);
+        const response = await fetch(`${API_BASE_URL}/cases?search=${search}`, {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        const cases = await response.json();
+        showLoading(false);
+
+        renderCases(cases);
+    } catch (error) {
+        showLoading(false);
+        showToast("Error fetching cases!", "danger");
+    }
+}
+
+// ✅ Render Cases in Table
+function renderCases(cases) {
+    const tableBody = document.getElementById("casesTableBody");
     tableBody.innerHTML = "";
 
-    cases.forEach((caseItem, index) => {
-        const row = `
-            <tr ondblclick="openEditModal(${index})">
-                <td>${caseItem.date || ''}</td>
-                <td>${caseItem.staff || ''}</td>
-                <td>${caseItem.mobile || ''}</td>
-                <td>${caseItem.name || ''}</td>
-                <td>${caseItem.work || ''}</td>
-                <td>${caseItem.info || ''}</td>
-                <td>${caseItem.pending || ''}</td>
-                <td>${caseItem.remarks || ''}</td>
-                <td>${caseItem.status || ''}</td>
-                ${localStorage.getItem("role") === "admin" ? `
-                    <td>
-                        <button class="btn btn-warning" onclick="openEditModal(${index})">Edit</button>
-                        <button class="btn btn-danger" onclick="deleteCase('${caseItem.id}')">Delete</button>
-                    </td>` : ""}
-            </tr>
+    cases.forEach((caseData) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td>${caseData.date_received}</td>
+            <td>${caseData.staff}</td>
+            <td>${caseData.mobile}</td>
+            <td>${caseData.name}</td>
+            <td>${caseData.work}</td>
+            <td>${caseData.info}</td>
+            <td>${caseData.status}</td>
+            <td>
+                <button class="btn btn-danger btn-sm" onclick="confirmDelete('${caseData.id}')">Delete</button>
+            </td>
         `;
-        tableBody.innerHTML += row;
+        tableBody.appendChild(row);
     });
 }
 
-// 🚀 Pagination
-function updatePagination(totalPages, currentPage) {
-    const paginationElement = document.getElementById("pagination");
-    if (!paginationElement) return;
-
-    paginationElement.innerHTML = `
-        <button ${currentPage === 1 ? "disabled" : ""} onclick="changePage(-1)">Previous</button>
-        <span>Page ${currentPage} of ${totalPages}</span>
-        <button ${currentPage === totalPages ? "disabled" : ""} onclick="changePage(1)">Next</button>
-    `;
+// ✅ Confirm Delete Case
+function confirmDelete(caseId) {
+    document.getElementById("confirmDeleteBtn").onclick = function() {
+        deleteCase(caseId);
+    };
+    new bootstrap.Modal(document.getElementById("deleteCaseModal")).show();
 }
 
-let currentPage = 1;
-
-function changePage(direction) {
-    currentPage += direction;
-    fetchCases("", currentPage);
-}
-
-// 🚀 Add new case
-function addCase() {
+// ✅ Delete Case from Backend
+async function deleteCase(caseId) {
     const token = localStorage.getItem("token");
-    if (!token) return;
+
+    try {
+        showLoading(true);
+        const response = await fetch(`${API_BASE_URL}/delete-case/${caseId}`, {
+            method: "DELETE",
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        showLoading(false);
+
+        if (response.ok) {
+            fetchCases();
+            showToast("Case deleted successfully!", "success");
+        } else {
+            showToast("Failed to delete case!", "danger");
+        }
+    } catch (error) {
+        showLoading(false);
+        showToast("Error deleting case!", "danger");
+    }
+}
+
+// ✅ Add New Case
+async function addCase() {
+    const token = localStorage.getItem("token");
 
     const caseData = {
-        date: document.getElementById("date")?.value || "",
-        staff: document.getElementById("staff")?.value || "",
-        mobile: document.getElementById("mobile")?.value || "",
-        name: document.getElementById("name")?.value || "",
-        work: document.getElementById("work")?.value || "",
-        info: document.getElementById("info")?.value || "",
-        pending: document.getElementById("pending")?.value || "",
-        remarks: document.getElementById("remarks")?.value || "",
-        status: document.getElementById("status")?.value || "",
+        date_received: document.getElementById("caseDate").value,
+        staff: document.getElementById("caseStaff").value,
+        mobile: document.getElementById("caseMobile").value,
+        name: document.getElementById("caseName").value,
+        work: document.getElementById("caseWork").value,
+        info: document.getElementById("caseInfo").value,
+        status: document.getElementById("caseStatus").value
     };
 
-    if (!caseData.name || !caseData.mobile || !caseData.staff || !caseData.date) {
-        alert("Please fill in all required fields (Date, Staff, Mobile, Name).");
+    if (!caseData.date_received || !caseData.staff || !caseData.mobile || !caseData.name) {
+        showToast("Please fill in all required fields!", "danger");
         return;
     }
 
-    fetch(`${API_URL}/add-case`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
-        },
-        body: JSON.stringify(caseData),
-    })
-    .then(response => response.json())
-    .then(data => {
-        alert(data.message || "Case added successfully!");
-        fetchCases();
-    })
-    .catch(error => console.error("Failed to add case:", error));
-}
+    try {
+        showLoading(true);
+        const response = await fetch(`${API_BASE_URL}/add-case`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+            body: JSON.stringify(caseData)
+        });
+        showLoading(false);
 
-// 🚀 Delete case
-function deleteCase(caseId) {
-    const token = localStorage.getItem("token");
-    if (!token) return;
-
-    if (confirm("Are you sure you want to delete this case?")) {
-        fetch(`${API_URL}/delete-case/${caseId}`, {
-            method: "DELETE",
-            headers: { "Authorization": `Bearer ${token}` },
-        })
-        .then(response => response.json())
-        .then(data => {
-            alert(data.message || "Case deleted successfully!");
+        if (response.ok) {
             fetchCases();
-        })
-        .catch(error => console.error("Failed to delete case:", error));
+            showToast("Case added successfully!", "success");
+            document.getElementById("caseForm").reset();
+            bootstrap.Modal.getInstance(document.getElementById("addCaseModal")).hide();
+        } else {
+            showToast("Failed to add case!", "danger");
+        }
+    } catch (error) {
+        showLoading(false);
+        showToast("Error adding case!", "danger");
     }
 }
 
-// 🚀 Open edit modal
-function openEditModal(index) {
-    const cases = JSON.parse(localStorage.getItem("cases")) || [];
-    const caseItem = cases[index];
+// ✅ Auto-fill Current Date for New Case
+document.addEventListener("DOMContentLoaded", function() {
+    document.getElementById("caseDate").value = new Date().toISOString().split("T")[0];
+});
 
-    if (caseItem) {
-        document.getElementById("edit-date").value = caseItem.date || "";
-        document.getElementById("edit-staff").value = caseItem.staff || "";
-        document.getElementById("edit-mobile").value = caseItem.mobile || "";
-        document.getElementById("edit-name").value = caseItem.name || "";
-        document.getElementById("edit-work").value = caseItem.work || "";
-        document.getElementById("edit-info").value = caseItem.info || "";
-        document.getElementById("edit-pending").value = caseItem.pending || "";
-        document.getElementById("edit-remarks").value = caseItem.remarks || "";
-        document.getElementById("edit-status").value = caseItem.status || "";
-
-        const modal = new bootstrap.Modal(document.getElementById("editModal"));
-        modal.show();
-    } else {
-        alert("Case not found!");
-    }
-}
+// ✅ Initialize UI on Page Load
+updateUI();
