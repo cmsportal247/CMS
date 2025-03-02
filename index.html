@@ -37,6 +37,17 @@
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
             <div class="container-fluid">
                 <a class="navbar-brand" href="#">Customer Management System</a>
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="showSection('casesSection')">Cases</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="showSection('reportsSection')">Reports</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="showSection('settingsSection')">Settings</a>
+                    </li>
+                </ul>
                 <div class="d-flex">
                     <span id="welcomeText" class="navbar-text me-3"></span>
                     <button id="logoutBtn" class="btn btn-danger" onclick="logout()">Logout</button>
@@ -44,8 +55,8 @@
             </div>
         </nav>
 
-        <!-- Main Content -->
-        <div class="container mt-4">
+        <!-- Cases Section -->
+        <div id="casesSection" class="container mt-4">
             <h3>Cases List</h3>
             <div class="d-flex justify-content-between mb-3">
                 <input type="text" id="searchInput" class="form-control w-25" placeholder="Search cases" onkeyup="fetchCases(this.value)">
@@ -78,33 +89,33 @@
             <nav>
                 <ul id="pagination" class="pagination justify-content-center"></ul>
             </nav>
+        </div>
 
-            <!-- Reports Section -->
-            <div class="mt-5">
-                <h3>Reports</h3>
-                <p>Export all cases to an Excel file for offline use.</p>
-                <button class="btn btn-info" onclick="exportToExcel()">Export to Excel</button>
-            </div>
+        <!-- Reports Section (Hidden Initially) -->
+        <div id="reportsSection" class="container mt-4" style="display: none;">
+            <h3>Reports</h3>
+            <p>Export all cases to an Excel file for offline use.</p>
+            <button class="btn btn-info" onclick="exportToExcel()">Export to Excel</button>
+        </div>
 
-            <!-- Settings Section -->
-            <div class="mt-5">
-                <h3>Settings</h3>
-                <p>Change your password below:</p>
-                <div class="card p-4">
-                    <div class="mb-3">
-                        <label for="currentPassword" class="form-label">Current Password</label>
-                        <input type="password" class="form-control" id="currentPassword" placeholder="Enter current password">
-                    </div>
-                    <div class="mb-3">
-                        <label for="newPassword" class="form-label">New Password</label>
-                        <input type="password" class="form-control" id="newPassword" placeholder="Enter new password">
-                    </div>
-                    <div class="mb-3">
-                        <label for="confirmPassword" class="form-label">Confirm New Password</label>
-                        <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm new password">
-                    </div>
-                    <button class="btn btn-warning" onclick="changePassword()">Change Password</button>
+        <!-- Settings Section (Hidden Initially) -->
+        <div id="settingsSection" class="container mt-4" style="display: none;">
+            <h3>Settings</h3>
+            <p>Change your password below:</p>
+            <div class="card p-4">
+                <div class="mb-3">
+                    <label for="currentPassword" class="form-label">Current Password</label>
+                    <input type="password" class="form-control" id="currentPassword" placeholder="Enter current password">
                 </div>
+                <div class="mb-3">
+                    <label for="newPassword" class="form-label">New Password</label>
+                    <input type="password" class="form-control" id="newPassword" placeholder="Enter new password">
+                </div>
+                <div class="mb-3">
+                    <label for="confirmPassword" class="form-label">Confirm New Password</label>
+                    <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm new password">
+                </div>
+                <button class="btn btn-warning" onclick="changePassword()">Change Password</button>
             </div>
         </div>
     </div>
