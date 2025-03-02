@@ -1,206 +1,205 @@
-const apiUrl = 'https://backend-7l9n.onrender.com';
-
+const apiBaseUrl = "https://backend-7l9n.onrender.com"; // Your live backend API
 let currentPage = 1;
-const pageSize = 10;
 
-// 🟢 Handle Login
-function login() {
-    const username = document.getElementById('loginUsername').value;
-    const password = document.getElementById('loginPassword').value;
+// ✅ Check token & handle login/logout state
+function checkAndHandleToken() {
+    const token = localStorage.getItem("token");
+    const username = localStorage.getItem("username");
 
-    fetch(`${apiUrl}/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success && data.token) {
-            localStorage.setItem('token', data.token);
-            showToast('Login successful!', 'success');
-            showSection('casesSection');
-            updateNavForAuth(true);
-            fetchCases();
-        } else {
-            showToast(data.message || 'Login failed', 'danger');
-        }
-    })
-    .catch(() => showToast('Error logging in', 'danger'));
-}
-
-// 🟢 Handle Logout
-function logout() {
-    localStorage.removeItem('token');
-    showToast('Logged out successfully', 'info');
-    updateNavForAuth(false);
-    showSection('loginSection');
-}
-
-// 🟢 Fetch Customer Cases
-function fetchCases(search = '', page = 1) {
-    document.getElementById('loadingSpinner').style.display = 'block';
-
-    fetch(`${apiUrl}/CustomerCases?search=${search}&page=${page}&limit=${pageSize}`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-    })
-    .then(response => response.json())
-    .then(data => {
-        document.getElementById('loadingSpinner').style.display = 'none';
-        if (data.success) {
-            renderCases(data.cases);
-            renderPagination(data.totalPages, page);
-        } else {
-            showToast(data.message || 'Failed to fetch customer cases', 'danger');
-        }
-    })
-    .catch(() => {
-        document.getElementById('loadingSpinner').style.display = 'none';
-        showToast('Error fetching customer cases', 'danger');
-    });
-}
-
-// 🟢 Add a New Case
-function addCase() {
-    const caseData = {
-        dateReceived: document.getElementById('caseDate').value,
-        staff: document.getElementById('caseStaff').value,
-        mobile: document.getElementById('caseMobile').value,
-        name: document.getElementById('caseName').value,
-        work: document.getElementById('caseWork').value,
-        info: document.getElementById('caseInfo').value,
-        status: document.getElementById('caseStatus').value,
-    };
-
-    fetch(`${apiUrl}/add-customer-case`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify(caseData)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showToast('Customer case added successfully!', 'success');
-            fetchCases();
-        } else {
-            showToast(data.message || 'Failed to add customer case', 'danger');
-        }
-    })
-    .catch(() => showToast('Error adding customer case', 'danger'));
-}
-
-// 🟢 Update Case
-function editCase(id) {
-    const caseData = {
-        dateReceived: prompt('Date Received:'),
-        staff: prompt('Staff:'),
-        mobile: prompt('Mobile:'),
-        name: prompt('Name:'),
-        work: prompt('Work:'),
-        info: prompt('Information:'),
-        status: prompt('Status:')
-    };
-
-    fetch(`${apiUrl}/update-customer-case/${id}`, {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify(caseData)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showToast('Customer case updated successfully!', 'success');
-            fetchCases();
-        } else {
-            showToast(data.message || 'Failed to update customer case', 'danger');
-        }
-    })
-    .catch(() => showToast('Error updating customer case', 'danger'));
-}
-
-// 🟢 Delete Case
-function deleteCase(id) {
-    if (!confirm('Are you sure you want to delete this customer case?')) return;
-
-    fetch(`${apiUrl}/delete-customer-case/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showToast('Customer case deleted successfully!', 'success');
-            fetchCases();
-        } else {
-            showToast(data.message || 'Failed to delete customer case', 'danger');
-        }
-    })
-    .catch(() => showToast('Error deleting customer case', 'danger'));
-}
-
-// 🟢 Export to Excel
-function exportToExcel() {
-    window.open(`${apiUrl}/export-customer-cases?token=${localStorage.getItem('token')}`, '_blank');
-}
-
-// 🟢 Change Password
-function changePassword() {
-    const currentPassword = document.getElementById('currentPassword').value;
-    const newPassword = document.getElementById('newPassword').value;
-
-    fetch(`${apiUrl}/change-password`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({ currentPassword, newPassword })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showToast('Password changed successfully!', 'success');
-        } else {
-            showToast(data.message || 'Failed to change password', 'danger');
-        }
-    })
-    .catch(() => showToast('Error changing password', 'danger'));
-}
-
-// 🟢 UI Helpers
-function showToast(message, type) {
-    const toast = document.getElementById('toast');
-    toast.innerText = message;
-    toast.className = `toast toast-${type}`;
-    toast.style.display = 'block';
-    setTimeout(() => (toast.style.display = 'none'), 3000);
-}
-
-function showSection(sectionId) {
-    document.querySelectorAll('.section').forEach(section => {
-        section.style.display = 'none';
-    });
-    document.getElementById(sectionId).style.display = 'block';
-}
-
-function updateNavForAuth(isLoggedIn) {
-    document.getElementById('loginNav').style.display = isLoggedIn ? 'none' : 'block';
-    document.getElementById('logoutNav').style.display = isLoggedIn ? 'block' : 'none';
-}
-
-// 🟢 Initial Load
-document.addEventListener('DOMContentLoaded', () => {
-    const token = localStorage.getItem('token');
-    if (token) {
-        showSection('casesSection');
-        updateNavForAuth(true);
+    if (token && username) {
+        document.getElementById("loginSection").style.display = "none";
+        document.getElementById("appSection").style.display = "block";
+        document.getElementById("logoutBtn").style.display = "inline-block";
+        document.getElementById("welcomeText").innerText = `Welcome, ${username}`;
+        showSection("casesSection"); // Show Cases by default
         fetchCases();
     } else {
-        showSection('loginSection');
+        document.getElementById("loginSection").style.display = "block";
+        document.getElementById("appSection").style.display = "none";
+        document.getElementById("logoutBtn").style.display = "none";
     }
-});
+}
+
+// ✅ Toast message function
+function showToast(message) {
+    const toastMessage = document.getElementById("toastMessage");
+    const toast = new bootstrap.Toast(document.getElementById("toast"));
+
+    if (toastMessage) {
+        toastMessage.innerText = message;
+        toast.show();
+    }
+}
+
+// ✅ Login function
+async function login() {
+    const username = document.getElementById("loginUsername").value;
+    const password = document.getElementById("loginPassword").value;
+
+    try {
+        const response = await fetch(`${apiBaseUrl}/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password }),
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+            localStorage.setItem("token", data.token);
+            localStorage.setItem("username", username);
+            showToast("Login successful!");
+            checkAndHandleToken();
+        } else {
+            showToast(data.message || "Invalid credentials");
+        }
+    } catch (error) {
+        showToast("Login failed. Try again.");
+    }
+}
+
+// ✅ Logout function
+function logout() {
+    localStorage.removeItem("token");
+    localStorage.removeItem("username");
+    showToast("Logged out successfully!");
+    checkAndHandleToken();
+}
+
+// ✅ Show sections
+function showSection(sectionId) {
+    document.getElementById("casesSection").style.display = "none";
+    document.getElementById("reportsSection").style.display = "none";
+    document.getElementById("settingsSection").style.display = "none";
+    document.getElementById(sectionId).style.display = "block";
+}
+
+// ✅ Fetch Cases with pagination & search
+async function fetchCases() {
+    const token = localStorage.getItem("token");
+    const searchQuery = document.getElementById("searchInput").value || "";
+
+    try {
+        const response = await fetch(`${apiBaseUrl}/cases?page=${currentPage}&search=${searchQuery}`, {
+            headers: { "Authorization": `Bearer ${token}` },
+        });
+
+        if (response.ok) {
+            const cases = await response.json();
+            renderCasesTable(cases);
+        } else {
+            showToast("Failed to fetch cases");
+        }
+    } catch (error) {
+        showToast("Error fetching cases");
+    }
+}
+
+// ✅ Render cases in the table
+function renderCasesTable(cases) {
+    const table = document.getElementById("casesTable");
+    table.innerHTML = "";
+
+    if (cases.length === 0) {
+        table.innerHTML = "<tr><td colspan='8'>No cases found.</td></tr>";
+        return;
+    }
+
+    cases.forEach((c) => {
+        const row = table.insertRow();
+        row.innerHTML = `
+            <td>${c.dateReceived}</td>
+            <td>${c.staff}</td>
+            <td>${c.mobile}</td>
+            <td>${c.name}</td>
+            <td>${c.work}</td>
+            <td>${c.remarks}</td>
+            <td>${c.status}</td>
+            <td>
+                <button class="btn btn-warning btn-sm" onclick="editCase('${c._id}')">Edit</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteCase('${c._id}')">Delete</button>
+            </td>
+        `;
+    });
+}
+
+// ✅ Add Case
+async function addCase() {
+    const token = localStorage.getItem("token");
+
+    const caseData = {
+        dateReceived: document.getElementById("caseDate").value,
+        staff: document.getElementById("caseStaff").value,
+        mobile: document.getElementById("caseMobile").value,
+        name: document.getElementById("caseName").value,
+        work: document.getElementById("caseWork").value,
+        remarks: document.getElementById("caseRemarks").value,
+        status: document.getElementById("caseStatus").value,
+    };
+
+    try {
+        const response = await fetch(`${apiBaseUrl}/add-case`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`,
+            },
+            body: JSON.stringify(caseData),
+        });
+
+        if (response.ok) {
+            showToast("Case added successfully!");
+            fetchCases();
+        } else {
+            showToast("Failed to add case.");
+        }
+    } catch (error) {
+        showToast("Error adding case.");
+    }
+}
+
+// ✅ Pagination controls
+function changePage(offset) {
+    currentPage += offset;
+    if (currentPage < 1) currentPage = 1;
+    fetchCases();
+}
+
+// ✅ Export reports to Excel
+function exportToExcel() {
+    const fromDate = document.getElementById("fromDate").value;
+    const toDate = document.getElementById("toDate").value;
+
+    window.open(`${apiBaseUrl}/export-excel?from=${fromDate}&to=${toDate}`, "_blank");
+}
+
+// ✅ Change password
+async function changePassword() {
+    const token = localStorage.getItem("token");
+    const oldPassword = document.getElementById("oldPassword").value;
+    const newPassword = document.getElementById("newPassword").value;
+    const confirmPassword = document.getElementById("confirmPassword").value;
+
+    if (newPassword !== confirmPassword) {
+        showToast("Passwords do not match!");
+        return;
+    }
+
+    try {
+        const response = await fetch(`${apiBaseUrl}/change-password`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`,
+            },
+            body: JSON.stringify({ oldPassword, newPassword }),
+        });
+
+        if (response.ok) {
+            showToast("Password changed successfully!");
+        } else {
+            showToast("Failed to change password.");
+        }
+    } catch (error) {
+        showToast("Error changing password.");
+    }
+}
