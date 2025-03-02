@@ -1,6 +1,10 @@
 // ✅ API Base URL (Render API)
 const API_BASE_URL = "https://backend-7l9n.onrender.com"; 
 
+// ✅ Pagination Settings
+let currentPage = 1;
+const casesPerPage = 10;
+
 // ✅ Show Toast Notifications
 function showToast(message, type = "success") {
     const toastContainer = document.getElementById("toastContainer");
@@ -60,6 +64,7 @@ function logout() {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     updateUI();
+    showToast("Logged out successfully!", "success");
 }
 
 // ✅ Update UI (Login/Logout)
@@ -75,20 +80,25 @@ function updateUI() {
     if (token) fetchCases();
 }
 
-// ✅ Fetch Cases from Backend
-async function fetchCases(search = "") {
+// ✅ Fetch Cases with Pagination & Search
+async function fetchCases(search = "", page = 1) {
     const token = localStorage.getItem("token");
     if (!token) return;
 
     try {
         showLoading(true);
-        const response = await fetch(`${API_BASE_URL}/cases?search=${search}`, {
+        const response = await fetch(`${API_BASE_URL}/cases?search=${search}&page=${page}&limit=${casesPerPage}`, {
             headers: { "Authorization": `Bearer ${token}` }
         });
-        const cases = await response.json();
+        const result = await response.json();
         showLoading(false);
 
-        renderCases(cases);
+        if (response.ok) {
+            renderCases(result.cases);
+            renderPagination(result.totalPages, page);
+        } else {
+            showToast("Failed to fetch cases!", "danger");
+        }
     } catch (error) {
         showLoading(false);
         showToast("Error fetching cases!", "danger");
@@ -111,11 +121,26 @@ function renderCases(cases) {
             <td>${caseData.info}</td>
             <td>${caseData.status}</td>
             <td>
+                <button class="btn btn-warning btn-sm" onclick="editCase('${caseData.id}')">Edit</button>
                 <button class="btn btn-danger btn-sm" onclick="confirmDelete('${caseData.id}')">Delete</button>
             </td>
         `;
         tableBody.appendChild(row);
     });
+}
+
+// ✅ Render Pagination
+function renderPagination(totalPages, currentPage) {
+    const paginationContainer = document.getElementById("pagination");
+    paginationContainer.innerHTML = "";
+
+    for (let i = 1; i <= totalPages; i++) {
+        paginationContainer.innerHTML += `
+            <li class="page-item ${i === currentPage ? "active" : ""}">
+                <a class="page-link" href="#" onclick="fetchCases('', ${i})">${i}</a>
+            </li>
+        `;
+    }
 }
 
 // ✅ Confirm Delete Case
@@ -126,7 +151,7 @@ function confirmDelete(caseId) {
     new bootstrap.Modal(document.getElementById("deleteCaseModal")).show();
 }
 
-// ✅ Delete Case from Backend
+// ✅ Delete Case
 async function deleteCase(caseId) {
     const token = localStorage.getItem("token");
 
@@ -150,46 +175,11 @@ async function deleteCase(caseId) {
     }
 }
 
-// ✅ Add New Case
-async function addCase() {
+// ✅ Export Reports to Excel
+function exportToExcel() {
     const token = localStorage.getItem("token");
 
-    const caseData = {
-        date_received: document.getElementById("caseDate").value,
-        staff: document.getElementById("caseStaff").value,
-        mobile: document.getElementById("caseMobile").value,
-        name: document.getElementById("caseName").value,
-        work: document.getElementById("caseWork").value,
-        info: document.getElementById("caseInfo").value,
-        status: document.getElementById("caseStatus").value
-    };
-
-    if (!caseData.date_received || !caseData.staff || !caseData.mobile || !caseData.name) {
-        showToast("Please fill in all required fields!", "danger");
-        return;
-    }
-
-    try {
-        showLoading(true);
-        const response = await fetch(`${API_BASE_URL}/add-case`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-            body: JSON.stringify(caseData)
-        });
-        showLoading(false);
-
-        if (response.ok) {
-            fetchCases();
-            showToast("Case added successfully!", "success");
-            document.getElementById("caseForm").reset();
-            bootstrap.Modal.getInstance(document.getElementById("addCaseModal")).hide();
-        } else {
-            showToast("Failed to add case!", "danger");
-        }
-    } catch (error) {
-        showLoading(false);
-        showToast("Error adding case!", "danger");
-    }
+    window.open(`${API_BASE_URL}/export-excel`, "_blank");
 }
 
 // ✅ Auto-fill Current Date for New Case
