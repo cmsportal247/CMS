@@ -23,15 +23,12 @@ function checkAndHandleToken() {
   const token = localStorage.getItem("token");
   const username = localStorage.getItem("username");
   if (token && username) {
-    // Show app section and hide login
     document.getElementById("loginSection").style.display = "none";
     document.getElementById("appSection").style.display = "block";
     document.getElementById("welcomeText").innerText = `Welcome, ${username}`;
-    // Show default section (Cases)
     showSection("casesSection");
     fetchCases();
   } else {
-    // No token: show login only
     document.getElementById("loginSection").style.display = "block";
     document.getElementById("appSection").style.display = "none";
   }
@@ -44,7 +41,7 @@ async function login() {
     const response = await fetch(`${apiBaseUrl}/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password })
+      body: JSON.stringify({ username, password }),
     });
     const data = await response.json();
     if (response.ok && data.token) {
@@ -73,9 +70,8 @@ function showSection(sectionId) {
   document.getElementById("settingsSection").style.display = "none";
   // Also remove active class from nav tabs
   document.querySelectorAll(".nav-link").forEach((el) => el.classList.remove("active"));
-  // Show the selected section
+  // Show the selected section and add active class
   document.getElementById(sectionId).style.display = "block";
-  // Add active class to corresponding nav tab (by id convention)
   if (sectionId === "casesSection") document.querySelector("a[onclick*='casesSection']").classList.add("active");
   if (sectionId === "reportsSection") document.querySelector("a[onclick*='reportsSection']").classList.add("active");
   if (sectionId === "settingsSection") document.querySelector("a[onclick*='settingsSection']").classList.add("active");
@@ -88,15 +84,17 @@ async function fetchCases() {
   const token = localStorage.getItem("token");
   const searchQuery = document.getElementById("searchInput").value || "";
   try {
-    const response = await fetch(`${apiBaseUrl}/cases?page=${currentPage}&search=${encodeURIComponent(searchQuery)}`, {
-      headers: { "Authorization": `Bearer ${token}` }
-    });
+    // Use DynamoDB cases endpoint (/CustomerCases)
+    const response = await fetch(
+      `${apiBaseUrl}/CustomerCases?page=${currentPage}&search=${encodeURIComponent(searchQuery)}`,
+      { headers: { "Authorization": `Bearer ${token}` } }
+    );
     if (response.ok) {
       const result = await response.json();
-      // Assume result contains { cases: [...], totalPages: number }
+      // Expecting result to have a "cases" array; adjust if your backend sends data differently.
       casesList = result.cases || [];
       renderCasesTable(casesList);
-      // (Optional) You can update pagination if totalPages is provided.
+      // If you have pagination data, you can update currentPage/totalPages here.
     } else {
       showToast("Failed to fetch cases");
     }
@@ -109,7 +107,7 @@ function renderCasesTable(cases) {
   const tableBody = document.getElementById("casesTable");
   tableBody.innerHTML = "";
   if (cases.length === 0) {
-    tableBody.innerHTML = "<tr><td colspan='8'>No cases found.</td></tr>";
+    tableBody.innerHTML = "<tr><td colspan='8' class='text-center'>No cases found.</td></tr>";
     return;
   }
   cases.forEach((c) => {
@@ -141,7 +139,7 @@ function changePage(offset) {
 // Cases: Add & Edit Modal
 // -------------------
 function showAddCaseModal() {
-  // Clear modal fields and set editing id to null
+  // Reset modal fields for adding a new case
   currentEditingCaseId = null;
   document.getElementById("caseModalLabel").innerText = "Add New Case";
   document.getElementById("caseDate").value = "";
@@ -151,13 +149,11 @@ function showAddCaseModal() {
   document.getElementById("caseWork").value = "";
   document.getElementById("caseRemarks").value = "";
   document.getElementById("caseStatus").value = "Pending";
-  // Show modal
   const modal = new bootstrap.Modal(document.getElementById("caseModal"));
   modal.show();
 }
 
 function editCase(id) {
-  // Find the case in our global list
   const caseToEdit = casesList.find((c) => c._id === id);
   if (!caseToEdit) {
     showToast("Case not found");
@@ -172,7 +168,6 @@ function editCase(id) {
   document.getElementById("caseWork").value = caseToEdit.work || "";
   document.getElementById("caseRemarks").value = caseToEdit.remarks || "";
   document.getElementById("caseStatus").value = caseToEdit.status || "Pending";
-  // Show modal
   const modal = new bootstrap.Modal(document.getElementById("caseModal"));
   modal.show();
 }
@@ -186,35 +181,34 @@ async function saveCase() {
     name: document.getElementById("caseName").value,
     work: document.getElementById("caseWork").value,
     remarks: document.getElementById("caseRemarks").value,
-    status: document.getElementById("caseStatus").value
+    status: document.getElementById("caseStatus").value,
   };
 
   try {
     let response;
     if (currentEditingCaseId) {
-      // Edit mode: update case
-      response = await fetch(`${apiBaseUrl}/update-case/${currentEditingCaseId}`, {
+      // Update existing case via PUT /CustomerCases/{id}
+      response = await fetch(`${apiBaseUrl}/CustomerCases/${currentEditingCaseId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+          "Authorization": `Bearer ${token}`,
         },
-        body: JSON.stringify(caseData)
+        body: JSON.stringify(caseData),
       });
     } else {
-      // Add mode: create new case
-      response = await fetch(`${apiBaseUrl}/add-case`, {
+      // Add new case via POST /CustomerCases
+      response = await fetch(`${apiBaseUrl}/CustomerCases`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+          "Authorization": `Bearer ${token}`,
         },
-        body: JSON.stringify(caseData)
+        body: JSON.stringify(caseData),
       });
     }
     if (response.ok) {
       showToast(currentEditingCaseId ? "Case updated!" : "Case added!");
-      // Hide modal
       const modalEl = document.getElementById("caseModal");
       const modal = bootstrap.Modal.getInstance(modalEl);
       modal.hide();
@@ -235,9 +229,9 @@ async function deleteCase(id) {
   if (!confirm("Are you sure you want to delete this case?")) return;
   const token = localStorage.getItem("token");
   try {
-    const response = await fetch(`${apiBaseUrl}/delete-case/${id}`, {
+    const response = await fetch(`${apiBaseUrl}/CustomerCases/${id}`, {
       method: "DELETE",
-      headers: { "Authorization": `Bearer ${token}` }
+      headers: { "Authorization": `Bearer ${token}` },
     });
     if (response.ok) {
       showToast("Case deleted!");
@@ -256,7 +250,6 @@ async function deleteCase(id) {
 function exportToExcel() {
   const fromDate = document.getElementById("fromDate").value;
   const toDate = document.getElementById("toDate").value;
-  // Open export endpoint in a new window/tab
   window.open(`${apiBaseUrl}/export-excel?from=${fromDate}&to=${toDate}`, "_blank");
 }
 
@@ -268,20 +261,18 @@ async function changePassword() {
   const oldPassword = document.getElementById("oldPassword").value;
   const newPassword = document.getElementById("newPassword").value;
   const confirmPassword = document.getElementById("confirmPassword").value;
-
   if (newPassword !== confirmPassword) {
     showToast("New passwords do not match!");
     return;
   }
-
   try {
     const response = await fetch(`${apiBaseUrl}/change-password`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
+        "Authorization": `Bearer ${token}`,
       },
-      body: JSON.stringify({ oldPassword, newPassword })
+      body: JSON.stringify({ oldPassword, newPassword }),
     });
     if (response.ok) {
       showToast("Password changed successfully!");
