@@ -2,6 +2,7 @@ const apiBaseUrl = "https://backend-7l9n.onrender.com";
 let currentPage = 1;
 let currentEditingCaseId = null;
 let casesList = [];
+const pageSize = 10; // Number of items per page (client-side)
 
 // -------------------
 // Toast Utility
@@ -26,6 +27,7 @@ function checkAndHandleToken() {
     document.getElementById("loginSection").style.display = "none";
     document.getElementById("appSection").style.display = "block";
     document.getElementById("welcomeText").innerText = `Welcome, ${username}`;
+    document.getElementById("logoutBtn").style.display = "inline-block";
     showSection("casesSection");
     fetchCases();
   } else {
@@ -82,7 +84,7 @@ function showSection(sectionId) {
 }
 
 // -------------------
-// Cases: Fetch, Render, Pagination
+// Cases: Fetch, Render, Client-side Pagination
 // -------------------
 async function fetchCases() {
   const token = localStorage.getItem("token");
@@ -95,8 +97,7 @@ async function fetchCases() {
       // Backend returns an array of cases
       const cases = await response.json();
       casesList = cases;
-      renderCasesTable(casesList);
-      document.getElementById("pageIndicator").innerText = `Page ${currentPage}`;
+      renderCasesPage();
     } else {
       const errorText = await response.text();
       showToast("Failed to fetch cases: " + errorText);
@@ -108,14 +109,18 @@ async function fetchCases() {
   }
 }
 
-function renderCasesTable(cases) {
+// Renders the current page using client-side pagination
+function renderCasesPage() {
   const tableBody = document.getElementById("casesTable");
   tableBody.innerHTML = "";
-  if (cases.length === 0) {
+  const startIndex = (currentPage - 1) * pageSize;
+  const pageCases = casesList.slice(startIndex, startIndex + pageSize);
+  if (pageCases.length === 0) {
     tableBody.innerHTML = `<tr><td colspan="8" class="text-center">No cases found.</td></tr>`;
+    document.getElementById("pageIndicator").innerText = `Page ${currentPage}`;
     return;
   }
-  cases.forEach(c => {
+  pageCases.forEach(c => {
     tableBody.innerHTML += `
       <tr>
         <td>${c.date || ""}</td>
@@ -132,11 +137,19 @@ function renderCasesTable(cases) {
       </tr>
     `;
   });
+  document.getElementById("pageIndicator").innerText = `Page ${currentPage}`;
 }
 
 function changePage(offset) {
+  const totalPages = Math.ceil(casesList.length / pageSize);
   currentPage += offset;
   if (currentPage < 1) currentPage = 1;
+  if (currentPage > totalPages) currentPage = totalPages;
+  renderCasesPage();
+}
+
+function applySearch() {
+  currentPage = 1;
   fetchCases();
 }
 
@@ -194,7 +207,7 @@ async function saveCase() {
       // Update functionality is not implemented yet.
       alert("Update functionality is not implemented yet.");
       return;
-      // Once implemented, uncomment the following:
+      // Uncomment below when update endpoint is available:
       /*
       response = await fetch(`${apiBaseUrl}/update-case/${currentEditingCaseId}`, {
         method: "PUT",
@@ -260,6 +273,10 @@ async function deleteCase(id) {
 function exportToExcel() {
   const fromDate = document.getElementById("fromDate").value;
   const toDate = document.getElementById("toDate").value;
+  if (!fromDate || !toDate) {
+    showToast("Please select both From and To dates");
+    return;
+  }
   window.open(`${apiBaseUrl}/export-excel?from=${fromDate}&to=${toDate}`, "_blank");
 }
 
