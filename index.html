@@ -4,138 +4,140 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Customer Management System</title>
+
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- Favicon -->
+    <link rel="icon" href="favicon.ico">
 </head>
 <body>
+    <div id="toastContainer" class="position-fixed top-0 end-0 p-3" style="z-index: 1055;"></div>
 
-<!-- ✅ Navbar -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="#">Customer Management System</a>
-        <div class="d-flex">
-            <span id="welcomeText" class="navbar-text me-3"></span>
-            <button id="logoutBtn" class="btn btn-outline-danger" onclick="logout()">Logout</button>
+    <!-- Login Form -->
+    <div id="loginForm" class="container mt-5">
+        <h2 class="text-center">Login</h2>
+        <div class="card p-4">
+            <div class="mb-3">
+                <label for="username" class="form-label">Username</label>
+                <input type="text" class="form-control" id="username" placeholder="Enter username">
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" placeholder="Enter password">
+            </div>
+            <button class="btn btn-primary w-100" onclick="login()">Login</button>
         </div>
     </div>
-</nav>
 
-<!-- ✅ Loading Spinner -->
-<div id="loadingSpinner" class="text-center mt-3" style="display: none;">
-    <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Loading...</span>
-    </div>
-</div>
-
-<!-- ✅ Toast Notifications -->
-<div id="toastContainer" class="position-fixed top-0 end-0 p-3" style="z-index: 1050;"></div>
-
-<!-- ✅ Main Content -->
-<div class="container mt-4">
-    <h2>Cases List</h2>
-
-    <!-- ✅ Search & Add Case -->
-    <div class="d-flex justify-content-between mb-3">
-        <input id="searchInput" class="form-control w-50" placeholder="Search by name or mobile" oninput="fetchCases(this.value)">
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCaseModal">New Case</button>
-    </div>
-
-    <!-- ✅ Cases Table -->
-    <table class="table table-bordered">
-        <thead class="table-dark">
-            <tr>
-                <th>Date Received</th>
-                <th>Staff</th>
-                <th>Mobile</th>
-                <th>Name</th>
-                <th>Work</th>
-                <th>Information</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody id="casesTableBody">
-            <!-- Cases will be rendered here -->
-        </tbody>
-    </table>
-
-    <!-- ✅ Pagination -->
-    <div id="pagination" class="d-flex justify-content-center mt-3"></div>
-</div>
-
-<!-- ✅ Add Case Modal -->
-<div id="addCaseModal" class="modal fade">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Add New Case</h5>
-                <button class="btn-close" data-bs-dismiss="modal"></button>
+    <!-- App Container -->
+    <div id="app" style="display: none;">
+        <!-- Navbar -->
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">Customer Management System</a>
+                <div class="d-flex">
+                    <span id="welcomeText" class="navbar-text me-3"></span>
+                    <button id="logoutBtn" class="btn btn-danger" onclick="logout()">Logout</button>
+                </div>
             </div>
-            <div class="modal-body">
-                <form id="caseForm">
-                    <div class="mb-3">
-                        <label for="caseDate" class="form-label">Date Received</label>
-                        <input id="caseDate" type="date" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="caseStaff" class="form-label">Staff</label>
-                        <input id="caseStaff" type="text" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="caseMobile" class="form-label">Mobile Number</label>
-                        <input id="caseMobile" type="text" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="caseName" class="form-label">Name</label>
-                        <input id="caseName" type="text" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="caseWork" class="form-label">Work</label>
-                        <input id="caseWork" type="text" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label for="caseInfo" class="form-label">Information</label>
-                        <textarea id="caseInfo" class="form-control"></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label for="caseStatus" class="form-label">Status</label>
-                        <select id="caseStatus" class="form-select">
-                            <option value="Pending">Pending</option>
-                            <option value="Completed">Completed</option>
-                        </select>
-                    </div>
-                </form>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="container mt-4">
+            <h3>Cases List</h3>
+            <div class="d-flex justify-content-between mb-3">
+                <input type="text" id="searchInput" class="form-control w-25" placeholder="Search cases" onkeyup="fetchCases(this.value)">
+                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addCaseModal">Add New Case</button>
             </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button class="btn btn-primary" onclick="addCase()" disabled>Save Case</button>
+
+            <!-- Loading Spinner -->
+            <div id="loadingSpinner" class="text-center" style="display: none;">
+                <div class="spinner-border text-primary" role="status"></div>
+            </div>
+
+            <!-- Cases Table -->
+            <table class="table table-bordered table-striped">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Date Received</th>
+                        <th>Staff</th>
+                        <th>Mobile</th>
+                        <th>Name</th>
+                        <th>Work</th>
+                        <th>Info</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="casesTableBody"></tbody>
+            </table>
+
+            <!-- Pagination -->
+            <nav>
+                <ul id="pagination" class="pagination justify-content-center"></ul>
+            </nav>
+
+            <!-- Reports & Settings -->
+            <div class="mt-4">
+                <h3>Reports</h3>
+                <button class="btn btn-info" onclick="exportToExcel()">Export Cases to Excel</button>
+            </div>
+
+            <div class="mt-4">
+                <h3>Settings</h3>
+                <p>Here you can configure system settings (if needed).</p>
             </div>
         </div>
     </div>
-</div>
 
-<!-- ✅ Delete Confirmation Modal -->
-<div id="deleteCaseModal" class="modal fade">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Confirm Deletion</h5>
-                <button class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                Are you sure you want to delete this case? This action cannot be undone.
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button id="confirmDeleteBtn" class="btn btn-danger">Delete</button>
+    <!-- Add Case Modal -->
+    <div class="modal fade" id="addCaseModal" tabindex="-1" aria-labelledby="addCaseModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Case</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="date" class="form-control mb-3" id="caseDate">
+                    <input type="text" class="form-control mb-3" id="caseStaff" placeholder="Staff">
+                    <input type="text" class="form-control mb-3" id="caseMobile" placeholder="Mobile">
+                    <input type="text" class="form-control mb-3" id="caseName" placeholder="Name">
+                    <input type="text" class="form-control mb-3" id="caseWork" placeholder="Work">
+                    <input type="text" class="form-control mb-3" id="caseInfo" placeholder="Information">
+                    <input type="text" class="form-control mb-3" id="caseStatus" placeholder="Status">
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-success" onclick="addCase()">Add Case</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Bootstrap JS & Custom Scripts -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="app.js"></script>
+    <!-- Delete Case Modal -->
+    <div class="modal fade" id="deleteCaseModal" tabindex="-1" aria-labelledby="deleteCaseModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Delete</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to delete this case?
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- App JS -->
+    <script src="app.js"></script>
 </body>
 </html>
