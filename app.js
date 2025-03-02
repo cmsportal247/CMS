@@ -87,12 +87,11 @@ async function fetchCases() {
   const token = localStorage.getItem("token");
   const searchQuery = document.getElementById("searchInput").value || "";
   try {
-    // Use GET /cases endpoint (backend returns an array of cases)
     const response = await fetch(`${apiBaseUrl}/cases?search=${encodeURIComponent(searchQuery)}`, {
       headers: { "Authorization": `Bearer ${token}` }
     });
     if (response.ok) {
-      // The backend returns an array of cases (not paginated)
+      // Backend returns an array of cases
       const cases = await response.json();
       casesList = cases;
       renderCasesTable(casesList);
@@ -135,7 +134,7 @@ function renderCasesTable(cases) {
 function changePage(offset) {
   currentPage += offset;
   if (currentPage < 1) currentPage = 1;
-  // Since backend does not paginate, this is just for display.
+  // (Since backend is not paginated, this just refetches all cases.)
   fetchCases();
 }
 
@@ -157,7 +156,6 @@ function showAddCaseModal() {
 }
 
 function editCase(id) {
-  // Find case by id from casesList (backend uses field "id")
   const caseToEdit = casesList.find(c => c.id === id);
   if (!caseToEdit) {
     showToast("Case not found");
@@ -190,7 +188,7 @@ async function saveCase() {
   try {
     let response;
     if (currentEditingCaseId) {
-      // If update endpoint is not implemented on backend, this will fail.
+      // Call update endpoint; ensure your backend implements this.
       response = await fetch(`${apiBaseUrl}/update-case/${currentEditingCaseId}`, {
         method: "PUT",
         headers: {
