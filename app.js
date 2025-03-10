@@ -91,7 +91,6 @@ async function fetchCases() {
       headers: { "Authorization": `Bearer ${token}` }
     });
     if (response.ok) {
-      // Backend returns an array of cases
       const cases = await response.json();
       casesList = cases;
       renderCasesPage();
@@ -150,6 +149,21 @@ function applySearch() {
 }
 
 // -------------------
+// Validate Case Form
+// -------------------
+function validateCaseForm() {
+  const date = document.getElementById("caseDate").value;
+  const staff = document.getElementById("caseStaff").value;
+  const mobile = document.getElementById("caseMobile").value;
+  const name = document.getElementById("caseName").value;
+  if (!date || !staff || !mobile || !name) {
+    showToast("Date, Staff, Mobile, and Name are required");
+    return false;
+  }
+  return true;
+}
+
+// -------------------
 // Cases: Add & Edit Modal
 // -------------------
 function showAddCaseModal() {
@@ -186,6 +200,8 @@ function editCase(id) {
 }
 
 async function saveCase() {
+  if (!validateCaseForm()) return; // Ensure required fields are filled
+  
   const token = localStorage.getItem("token");
   const caseData = {
     date: document.getElementById("caseDate").value,
@@ -202,7 +218,6 @@ async function saveCase() {
   try {
     let response;
     if (currentEditingCaseId) {
-      // Call update endpoint on backend
       response = await fetch(`${apiBaseUrl}/update-case/${currentEditingCaseId}`, {
         method: "PUT",
         headers: {
@@ -221,7 +236,7 @@ async function saveCase() {
         body: JSON.stringify(caseData)
       });
     }
-    if (response && response.ok) {
+    if (response.ok) {
       showToast(currentEditingCaseId ? "Case updated!" : "Case added!");
       const modalEl = document.getElementById("caseModal");
       const modal = bootstrap.Modal.getInstance(modalEl);
