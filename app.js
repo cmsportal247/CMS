@@ -300,9 +300,17 @@ function exportToExcel() {
     showToast("Please select both From and To dates");
     return;
   }
-  const url = `${apiBaseUrl}/export-excel?from=${encodeURIComponent(fromDate)}&to=${encodeURIComponent(toDate)}`;
+  const token = localStorage.getItem("token");
+  if (!token) {
+    showToast("No token found. Please log in again.");
+    return;
+  }
+  // Construct the URL including the token as a query parameter
+  const url = `${apiBaseUrl}/export-excel?from=${encodeURIComponent(fromDate)}&to=${encodeURIComponent(toDate)}&token=${encodeURIComponent(token)}`;
+  console.log("Export URL:", url); // Debug: check URL in browser console
   window.open(url, "_blank");
 }
+
 
 // -------------------
 // Settings: Change Password
