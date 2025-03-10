@@ -91,6 +91,7 @@ async function fetchCases() {
       headers: { "Authorization": `Bearer ${token}` }
     });
     if (response.ok) {
+      // Backend returns an array of cases
       const cases = await response.json();
       casesList = cases;
       renderCasesPage();
@@ -194,7 +195,6 @@ async function saveCase() {
     work: document.getElementById("caseWork").value,
     info: document.getElementById("caseRemarks").value,
     status: document.getElementById("caseStatus").value,
-    // Provide default values for fields not handled in UI:
     pending: false,
     remarks: document.getElementById("caseRemarks").value
   };
@@ -202,7 +202,7 @@ async function saveCase() {
   try {
     let response;
     if (currentEditingCaseId) {
-     
+      // Call update endpoint on backend
       response = await fetch(`${apiBaseUrl}/update-case/${currentEditingCaseId}`, {
         method: "PUT",
         headers: {
@@ -211,7 +211,6 @@ async function saveCase() {
         },
         body: JSON.stringify(caseData)
       });
-      
     } else {
       response = await fetch(`${apiBaseUrl}/add-case`, {
         method: "POST",
