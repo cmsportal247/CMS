@@ -81,18 +81,32 @@ function showSection(sectionId) {
 }
 
 // -------------------
-// Cases: Fetch, Render, Client-side Pagination
+// Cases: Fetch, Render, Client-side Pagination & Search
 // -------------------
 async function fetchCases() {
   const token = localStorage.getItem("token");
-  const searchQuery = document.getElementById("searchInput").value || "";
   try {
-    const response = await fetch(`${apiBaseUrl}/cases?search=${encodeURIComponent(searchQuery)}`, {
+    // Fetch all cases (backend /cases endpoint does a scan)
+    const response = await fetch(`${apiBaseUrl}/cases`, {
       headers: { "Authorization": `Bearer ${token}` }
     });
     if (response.ok) {
-      const cases = await response.json();
-      casesList = cases;
+      const allCases = await response.json();
+      // Apply client-side search filtering
+      const searchQuery = document.getElementById("searchInput").value.toLowerCase();
+      if (searchQuery) {
+        casesList = allCases.filter(c => {
+          return (c.date && c.date.toLowerCase().includes(searchQuery)) ||
+                 (c.staff && c.staff.toLowerCase().includes(searchQuery)) ||
+                 (c.mobile && c.mobile.toLowerCase().includes(searchQuery)) ||
+                 (c.name && c.name.toLowerCase().includes(searchQuery)) ||
+                 (c.work && c.work.toLowerCase().includes(searchQuery)) ||
+                 (c.info && c.info.toLowerCase().includes(searchQuery)) ||
+                 (c.status && c.status.toLowerCase().includes(searchQuery));
+        });
+      } else {
+        casesList = allCases;
+      }
       renderCasesPage();
     } else {
       const errorText = await response.text();
@@ -200,7 +214,7 @@ function editCase(id) {
 }
 
 async function saveCase() {
-  if (!validateCaseForm()) return; // Ensure required fields are filled
+  if (!validateCaseForm()) return;
   
   const token = localStorage.getItem("token");
   const caseData = {
@@ -285,7 +299,8 @@ function exportToExcel() {
     showToast("Please select both From and To dates");
     return;
   }
-  window.open(`${apiBaseUrl}/export-excel?from=${fromDate}&to=${toDate}`, "_blank");
+  const url = `${apiBaseUrl}/export-excel?from=${encodeURIComponent(fromDate)}&to=${encodeURIComponent(toDate)}`;
+  window.open(url, "_blank");
 }
 
 // -------------------
