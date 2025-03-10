@@ -87,7 +87,7 @@ async function fetchCases() {
   const token = localStorage.getItem("token");
   try {
     // Fetch all cases (backend /cases endpoint does a scan)
-    const response = await fetch(`${apiBaseUrl}/cases`, {
+    const response = await fetch(`${apiBaseUrl}/CustomerCases`, {
       headers: { "Authorization": `Bearer ${token}` }
     });
     if (response.ok) {
