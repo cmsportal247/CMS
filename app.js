@@ -202,10 +202,7 @@ async function saveCase() {
   try {
     let response;
     if (currentEditingCaseId) {
-      // Update functionality is not implemented yet.
-      alert("Update functionality is not implemented yet.");
-      return;
-      /*
+     
       response = await fetch(`${apiBaseUrl}/update-case/${currentEditingCaseId}`, {
         method: "PUT",
         headers: {
@@ -214,7 +211,7 @@ async function saveCase() {
         },
         body: JSON.stringify(caseData)
       });
-      */
+      
     } else {
       response = await fetch(`${apiBaseUrl}/add-case`, {
         method: "POST",
