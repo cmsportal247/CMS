@@ -3,104 +3,115 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Customer Cases</title>
+  <title>Customer Case Manager</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 text-gray-800">
-
-  <!-- Navbar -->
-  <nav class="bg-white shadow-md sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-      <h1 class="text-xl font-bold">📁 Customer Case Manager</h1>
-      <button id="logoutBtn" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">Logout</button>
-    </div>
-  </nav>
-
-  <!-- Toast Message -->
-  <div id="toast" class="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow hidden z-50"></div>
-
-  <!-- Loading Spinner -->
-  <div id="loadingSpinner" class="fixed inset-0 bg-black bg-opacity-30 hidden justify-center items-center z-50">
-    <div class="animate-spin rounded-full h-16 w-16 border-b-4 border-white"></div>
-  </div>
-
-  <!-- Tabs -->
-  <div class="max-w-7xl mx-auto px-4 py-6">
-    <div class="flex space-x-4 mb-6">
-      <button id="casesTab" class="tab-btn active-tab">Cases</button>
-      <button id="reportsTab" class="tab-btn">Reports</button>
-      <button id="settingsTab" class="tab-btn">Settings</button>
-    </div>
-
-    <!-- Cases Section -->
-    <div id="casesSection" class="tab-content">
-      <div class="flex justify-between mb-4">
-        <h2 class="text-xl font-semibold">All Cases</h2>
-        <button id="openAddModalBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">+ New Case</button>
-      </div>
-
-      <!-- Case Table -->
-      <div class="overflow-x-auto shadow rounded-lg border border-gray-300">
-        <table class="w-full text-sm text-left">
-          <thead class="bg-gray-200">
-            <tr>
-              <th>Date</th><th>Name</th><th>Mobile</th><th>Alt Mobile</th><th>Work</th>
-              <th>Frame Size</th><th>Frame Color</th><th>Details</th>
-              <th>Advance</th><th>Actual</th><th>Status</th><th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="caseTableBody" class="bg-white divide-y divide-gray-200"></tbody>
-        </table>
-      </div>
-      <div class="flex justify-center mt-4 space-x-2" id="paginationControls"></div>
-    </div>
-
-    <!-- Reports Section -->
-    <div id="reportsSection" class="tab-content hidden">
-      <h2 class="text-xl font-semibold mb-4">📊 Reports</h2>
-      <div class="space-y-2">
-        <input type="date" id="fromDate" class="input-box" />
-        <input type="date" id="toDate" class="input-box" />
-        <button id="exportBtn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">Export to Excel</button>
-      </div>
-    </div>
-
-    <!-- Settings Section -->
-    <div id="settingsSection" class="tab-content hidden">
-      <h2 class="text-xl font-semibold mb-4">⚙️ Change Password</h2>
-      <div class="space-y-3 max-w-md">
-        <input type="password" id="oldPassword" placeholder="Old Password" class="input-box"/>
-        <input type="password" id="newPassword" placeholder="New Password" class="input-box"/>
-        <button id="changePasswordBtn" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded">Change Password</button>
-      </div>
+  <!-- Login Section -->
+  <div id="loginSection" class="flex justify-center items-center h-screen">
+    <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 w-full max-w-sm">
+      <h2 class="text-2xl font-bold mb-6 text-center">Login</h2>
+      <input type="text" id="loginUsername" placeholder="Username" class="input-box mb-4" />
+      <input type="password" id="loginPassword" placeholder="Password" class="input-box mb-4" />
+      <button id="loginBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 w-full rounded">Login</button>
     </div>
   </div>
 
-  <!-- Add/Edit Modal -->
-  <div id="caseModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-    <div class="bg-white w-full max-w-2xl p-6 rounded-lg shadow-lg">
-      <h3 class="text-lg font-semibold mb-4" id="modalTitle">Add Case</h3>
-      <form id="caseForm" class="grid grid-cols-2 gap-4">
-        <input type="hidden" id="caseId">
-        <input id="date" type="date" class="input-box" required placeholder="Date">
-        <input id="name" type="text" class="input-box" required placeholder="Customer Name">
-        <input id="mobile" type="text" class="input-box" required placeholder="Mobile">
-        <input id="altMobile" type="text" class="input-box" placeholder="Alt Mobile">
-        <input id="work" type="text" class="input-box" placeholder="Work Type">
-        <input id="frameSize" type="text" class="input-box" placeholder="Frame Size">
-        <input id="frameColor" type="text" class="input-box" placeholder="Frame Color">
-        <input id="requiredDetails" type="text" class="input-box" placeholder="Required Details">
-        <input id="advance" type="number" class="input-box" placeholder="Advance">
-        <input id="actualPrice" type="number" class="input-box" placeholder="Actual Price">
-        <select id="status" class="input-box">
-          <option value="Pending">Pending</option>
-          <option value="Completed">Completed</option>
-        </select>
-        <div class="col-span-2 flex justify-end space-x-3">
-          <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">Save</button>
-          <button type="button" id="closeModalBtn" class="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded">Cancel</button>
+  <!-- Main App -->
+  <div id="appSection" class="hidden">
+    <!-- Navbar -->
+    <nav class="bg-white shadow-md sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+        <h1 class="text-xl font-bold">📁 Customer Case Manager</h1>
+        <button id="logoutBtn" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">Logout</button>
+      </div>
+    </nav>
+
+    <!-- Tabs -->
+    <div class="max-w-7xl mx-auto px-4 py-6">
+      <div class="flex space-x-4 mb-6">
+        <button id="casesTab" class="tab-btn active-tab">Cases</button>
+        <button id="reportsTab" class="tab-btn">Reports</button>
+        <button id="settingsTab" class="tab-btn">Settings</button>
+      </div>
+
+      <!-- Loading Spinner -->
+      <div id="loadingSpinner" class="hidden text-center py-4">⏳ Loading...</div>
+
+      <!-- Toast -->
+      <div id="toast" class="fixed bottom-5 right-5 bg-green-500 text-white px-4 py-2 rounded hidden z-50"></div>
+
+      <!-- Cases Section -->
+      <div id="casesSection" class="tab-content">
+        <div class="flex justify-between mb-4">
+          <h2 class="text-xl font-semibold">All Cases</h2>
+          <button id="openAddModalBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">+ New Case</button>
         </div>
-      </form>
+
+        <!-- Table -->
+        <div class="overflow-x-auto">
+          <table class="w-full bg-white rounded-lg shadow-md overflow-hidden">
+            <thead class="bg-gray-200">
+              <tr>
+                <th class="p-2">Date</th><th>Name</th><th>Mobile</th><th>Alt Mobile</th><th>Work</th>
+                <th>Frame Size</th><th>Frame Color</th><th>Details</th><th>Advance</th><th>Actual</th><th>Status</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="caseTableBody" class="text-sm"></tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div id="pagination" class="flex justify-center mt-4 space-x-2"></div>
+      </div>
+
+      <!-- Reports Section -->
+      <div id="reportsSection" class="tab-content hidden">
+        <h2 class="text-xl font-semibold mb-4">📊 Reports</h2>
+        <div class="space-y-2">
+          <input type="date" id="fromDate" class="input-box" />
+          <input type="date" id="toDate" class="input-box" />
+          <button id="exportBtn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">Export to Excel</button>
+        </div>
+      </div>
+
+      <!-- Settings Section -->
+      <div id="settingsSection" class="tab-content hidden">
+        <h2 class="text-xl font-semibold mb-4">⚙️ Change Password</h2>
+        <div class="space-y-3 max-w-md">
+          <input type="password" id="oldPassword" placeholder="Old Password" class="input-box"/>
+          <input type="password" id="newPassword" placeholder="New Password" class="input-box"/>
+          <button id="changePasswordBtn" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded">Change Password</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div id="caseModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+      <div class="bg-white w-full max-w-2xl p-6 rounded-lg shadow-lg">
+        <h3 class="text-lg font-semibold mb-4" id="modalTitle">Add Case</h3>
+        <form id="caseForm" class="grid grid-cols-2 gap-4">
+          <input type="hidden" id="caseId">
+          <input id="date" type="date" class="input-box" required placeholder="Date">
+          <input id="name" type="text" class="input-box" required placeholder="Customer Name">
+          <input id="mobile" type="text" class="input-box" required placeholder="Mobile">
+          <input id="altMobile" type="text" class="input-box" placeholder="Alt Mobile">
+          <input id="work" type="text" class="input-box" placeholder="Work Type">
+          <input id="frameSize" type="text" class="input-box" placeholder="Frame Size">
+          <input id="frameColor" type="text" class="input-box" placeholder="Frame Color">
+          <input id="requiredDetails" type="text" class="input-box" placeholder="Required Details">
+          <input id="advance" type="number" class="input-box" placeholder="Advance">
+          <input id="actualPrice" type="number" class="input-box" placeholder="Actual Price">
+          <select id="status" class="input-box">
+            <option value="Pending">Pending</option>
+            <option value="Completed">Completed</option>
+          </select>
+          <div class="col-span-2 flex justify-end space-x-3">
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">Save</button>
+            <button type="button" id="closeModalBtn" class="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded">Cancel</button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
 
