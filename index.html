@@ -2,210 +2,82 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>CS FrameNest</title>
-  
-  <!-- Bootstrap CSS -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
-  
-  <!-- Custom Styles -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Case Management</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
   <style>
-    body {
-      background: #f8f9fa;
-    }
-    .navbar {
-      background: linear-gradient(135deg, #007bff, #0056b3);
-    }
-    .navbar-brand {
-      font-weight: bold;
-      font-size: 1.5rem;
-    }
-    .nav-tabs .nav-link {
-      color: #007bff;
-      font-weight: 500;
-    }
-    .nav-tabs .nav-link.active {
-      background: #007bff;
-      color: #fff;
-    }
-    #loginSection {
-      max-width: 500px;
-      margin: 50px auto;
-      padding: 20px;
-      background: #fff;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-    .table-responsive {
-      max-height: 400px;
-      overflow-y: auto;
-    }
+    #loadingSpinner { display: none; }
+    .hidden { display: none; }
   </style>
 </head>
-<body onload="checkAndHandleToken()">
-<div id="loadingSpinner" class="text-center mt-4" style="display:none;">
-  <div class="spinner-border text-primary" role="status"></div>
-  <p>Loading...</p>
-</div>
-
-  <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-dark">
-    <div class="container-fluid">
-      <a class="navbar-brand" href="#">CS FrameNest</a>
-      <div class="d-flex">
-        <span id="welcomeText" class="text-white me-3"></span>
-        <button id="logoutBtn" class="btn btn-danger" onclick="logout()" style="display:none;">Logout</button>
-      </div>
-    </div>
-  </nav>
-
+<body class="p-4">
   <!-- Toast -->
-  <div id="toastContainer" class="position-fixed top-0 end-0 p-3" style="z-index: 1050;">
-    <div id="toast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true">
+  <div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div class="toast" id="toast" role="alert">
       <div class="toast-body" id="toastMessage"></div>
     </div>
   </div>
 
-  <!-- Main Container -->
-  <div class="container mt-4">
-    
-    <!-- Login Section -->
-    <div id="loginSection">
-      <h3 class="text-center mb-4">Login to CMS</h3>
-      <div class="mb-3">
-        <input id="loginUsername" type="text" class="form-control" placeholder="Username" />
-      </div>
-      <div class="mb-3">
-        <input id="loginPassword" type="password" class="form-control" placeholder="Password" />
-      </div>
-      <button class="btn btn-primary w-100" onclick="login()">Login</button>
-    </div>
-
-    <!-- App Section -->
-    <div id="appSection" style="display:none;">
-      <!-- Navigation Tabs -->
-      <ul class="nav nav-tabs">
-        <li class="nav-item">
-          <a class="nav-link active" href="#" onclick="showSection('casesSection')">Cases</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="#" onclick="showSection('reportsSection')">Reports</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="#" onclick="showSection('settingsSection')">Settings</a>
-        </li>
-      </ul>
-
-      <!-- CASES SECTION -->
-      <div id="casesSection" class="mt-4">
-        <h3>Customer Details</h3>
-        <div class="mb-3">
-          <input id="searchInput" type="text" class="form-control" placeholder="Search cases" onkeyup="applySearch()" />
-        </div>
-        <button class="btn btn-success mb-3" onclick="showAddCaseModal()">Add Customer</button>
-
-        <div class="table-responsive">
-          <table class="table table-bordered table-hover">
-            <thead class="table-primary">
-              <tr>
-                <th>Date</th>
-                <th>Name</th>
-                <th>Mobile</th>
-                <th>Alt no.</th>
-                <th>Work</th>
-                <th>Frame Size</th>
-                <th>Frame Color</th>
-                <th>Required details</th>
-                <th>Advance given</th>
-                <th>Actual price</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="casesTable">
-              <!-- Data will be injected here -->
-            </tbody>
-          </table>
-        </div>
-
-        <div class="d-flex justify-content-between">
-          <button class="btn btn-secondary" onclick="changePage(-1)">Previous</button>
-          <span id="pageIndicator">Page 1</span>
-          <button class="btn btn-secondary" onclick="changePage(1)">Next</button>
-        </div>
-      </div>
-
-      <!-- REPORTS SECTION -->
-      <div id="reportsSection" class="mt-4" style="display:none;">
-        <h3>Export Reports</h3>
-        <div class="mb-3">
-          <label>From Date:</label>
-          <input id="fromDate" type="date" class="form-control" />
-        </div>
-        <div class="mb-3">
-          <label>To Date:</label>
-          <input id="toDate" type="date" class="form-control" />
-        </div>
-        <button class="btn btn-success" onclick="exportToExcel()">Export to Excel</button>
-      </div>
-
-      <!-- SETTINGS SECTION -->
-      <div id="settingsSection" class="mt-4" style="display:none;">
-        <h3>Change Password</h3>
-        <div class="mb-3">
-          <input id="oldPassword" type="password" class="form-control" placeholder="Old Password" />
-        </div>
-        <div class="mb-3">
-          <input id="newPassword" type="password" class="form-control" placeholder="New Password" />
-        </div>
-        <div class="mb-3">
-          <input id="confirmPassword" type="password" class="form-control" placeholder="Confirm New Password" />
-        </div>
-        <button class="btn btn-warning" onclick="changePassword()">Change Password</button>
-      </div>
-    </div>
+  <!-- Loading Spinner -->
+  <div id="loadingSpinner" class="text-center">
+    <div class="spinner-border text-primary" role="status"></div>
   </div>
 
-  <!-- CASE MODAL -->
-  <div class="modal fade" id="caseModal" tabindex="-1" aria-labelledby="caseModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 id="caseModalLabel" class="modal-title">Add/Edit Case</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <div class="mb-2"><label>Date</label><input id="caseDate" type="date" class="form-control" /></div>
-          <div class="mb-2"><input id="caseName" type="text" class="form-control" placeholder="Name" /></div>
-          <div class="mb-2"><input id="caseMobile" type="text" class="form-control" placeholder="Mobile" /></div>
-          <div class="mb-2"><input id="altNo" type="text" class="form-control" placeholder="Alternate No." /></div>
-          <div class="mb-2"><input id="caseWork" type="text" class="form-control" placeholder="Work" /></div>
-          <div class="mb-2"><input id="caseFrameSize" type="text" class="form-control" placeholder="Frame Size" /></div>
-          <div class="mb-2"><input id="caseFrameColor" type="text" class="form-control" placeholder="Frame Color" /></div>
-          <div class="mb-2"><textarea id="caseRequiredDetails" class="form-control" placeholder="Required details"></textarea></div>
-          <div class="mb-2"><input id="caseAdvanceGiven" type="text" class="form-control" placeholder="Advance Given" /></div>
-          <div class="mb-2"><input id="caseActualPrice" type="text" class="form-control" placeholder="Actual Price" /></div>
-          <div class="mb-2"><textarea id="caseRemarks" class="form-control" placeholder="Info"></textarea></div>
-          <div class="mb-2">
-            <select id="caseStatus" class="form-select">
-              <option value="Customer Pending">Customer Pending</option>
-              <option value="Open">Open</option>
-              <option value="Completed">Completed</option>
-            </select>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button id="saveCaseBtn" class="btn btn-primary" onclick="saveCase()">Save Case</button>
-        </div>
+  <!-- Login Form -->
+  <div id="loginSection">
+    <h2>Login</h2>
+    <form id="loginForm" class="mb-4">
+      <div class="mb-3">
+        <label for="username" class="form-label">Username</label>
+        <input type="text" class="form-control" id="username" required />
       </div>
-    </div>
+      <div class="mb-3">
+        <label for="password" class="form-label">Password</label>
+        <input type="password" class="form-control" id="password" required />
+      </div>
+      <button type="submit" class="btn btn-primary">Login</button>
+    </form>
   </div>
 
-  <!-- Bootstrap Bundle JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Case Management Section -->
+  <div id="caseSection" class="hidden">
+    <div class="d-flex justify-content-between mb-3">
+      <h2>Case Management</h2>
+      <button onclick="logout()" class="btn btn-danger">Logout</button>
+    </div>
 
-  <!-- Linked App Logic -->
+    <input type="text" id="searchInput" class="form-control mb-3" placeholder="Search cases..." />
+
+    <form id="caseForm" class="row g-3 mb-4">
+      <input type="hidden" id="caseId" />
+      <div class="col-md-3"><input type="date" class="form-control" name="date" required /></div>
+      <div class="col-md-3"><input type="text" class="form-control" name="name" placeholder="Name" required /></div>
+      <div class="col-md-3"><input type="text" class="form-control" name="mobile" placeholder="Mobile" required /></div>
+      <div class="col-md-3"><input type="text" class="form-control" name="altMobile" placeholder="Alt Mobile" /></div>
+      <div class="col-md-3"><input type="text" class="form-control" name="work" placeholder="Work" /></div>
+      <div class="col-md-3"><input type="text" class="form-control" name="frameSize" placeholder="Frame Size" /></div>
+      <div class="col-md-3"><input type="text" class="form-control" name="frameColor" placeholder="Frame Color" /></div>
+      <div class="col-md-3"><input type="text" class="form-control" name="requiredDetails" placeholder="Required Details" /></div>
+      <div class="col-md-3"><input type="number" class="form-control" name="advance" placeholder="Advance" /></div>
+      <div class="col-md-3"><input type="number" class="form-control" name="actualPrice" placeholder="Actual Price" /></div>
+      <div class="col-md-3"><input type="text" class="form-control" name="status" placeholder="Status" /></div>
+      <div class="col-md-3">
+        <button type="submit" class="btn btn-success w-100">Save</button>
+      </div>
+    </form>
+
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>#</th><th>Date</th><th>Name</th><th>Mobile</th><th>Alt</th><th>Work</th><th>Size</th><th>Color</th>
+          <th>Details</th><th>Advance</th><th>Price</th><th>Status</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="caseTableBody"></tbody>
+    </table>
+    <ul class="pagination" id="pagination"></ul>
+  </div>
+
   <script src="app.js"></script>
 </body>
 </html>
