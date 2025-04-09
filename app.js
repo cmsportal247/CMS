@@ -8,6 +8,10 @@ const loadingSpinner = document.getElementById("loadingSpinner");
 const caseIdField = document.getElementById("caseId");
 const nameField = document.getElementById("name");
 const mobileField = document.getElementById("mobile");
+const workField = document.getElementById("work");
+const frameSizeField = document.getElementById("frameSize");
+const frameColorField = document.getElementById("frameColor");
+const statusField = document.getElementById("status");
 const submitButton = document.getElementById("submitButton");
 
 let currentPage = 1;
@@ -73,6 +77,10 @@ function addCase() {
     caseIdField.value = "";
     nameField.value = "";
     mobileField.value = "";
+    workField.value = "";
+    frameSizeField.value = "";
+    frameColorField.value = "";
+    statusField.value = "Pending";
     submitButton.innerText = "Add Case";
 }
 
@@ -86,6 +94,10 @@ async function editCase(id) {
         caseIdField.value = data.id;
         nameField.value = data.name;
         mobileField.value = data.mobile;
+        workField.value = data.work;
+        frameSizeField.value = data.frameSize;
+        frameColorField.value = data.frameColor;
+        statusField.value = data.status;
         submitButton.innerText = "Update Case";
     } catch (error) {
         console.error("Error fetching case:", error);
@@ -100,7 +112,10 @@ caseForm.addEventListener("submit", async (e) => {
     const caseData = {
         name: nameField.value,
         mobile: mobileField.value,
-        // Include other fields here as needed
+        work: workField.value,
+        frameSize: frameSizeField.value,
+        frameColor: frameColorField.value,
+        status: statusField.value
     };
 
     toggleLoading(true);
@@ -146,15 +161,13 @@ async function deleteCase(id) {
 }
 
 // Generate Excel report
-function generateExcelReport(cases) {
-    const ws = XLSX.utils.json_to_sheet(cases);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Cases");
-    XLSX.writeFile(wb, "cases_report.xlsx");
-}
-
-// Fetch the initial list of cases
-fetchCases();
-
-// Example of how to trigger Excel report generation
-// generateExcelReport(casesArray); 
+function generateExcelReport() {
+    toggleLoading(true);
+    fetch(`${baseUrl}/cases`)
+        .then((res) => res.json())
+        .then((data) => {
+            const ws = XLSX.utils.json_to_sheet(data.cases);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Cases");
+            XLSX.writeFile(wb, "cases_report.xlsx");
+            toggleLoading(false
