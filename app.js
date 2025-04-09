@@ -1,234 +1,263 @@
-let currentUser = null;
-let cases = [];
+let casesData = [];
 let currentPage = 1;
-const itemsPerPage = 5;
-let editingIndex = null;
+const casesPerPage = 5;
+let editingCaseId = null;
 
-// LOGIN
+// ========== Authentication ==========
+
 function login() {
-  const username = document.getElementById('loginUsername').value;
-  const password = document.getElementById('loginPassword').value;
+  const username = document.getElementById("loginUsername").value;
+  const password = document.getElementById("loginPassword").value;
 
-  if (username === 'admin' && password === '1234') {
-    const token = btoa(username + ':' + password);
-    localStorage.setItem('cms_token', token);
-    localStorage.setItem('cms_user', username);
-    showToast('Login successful');
-    checkAndHandleToken();
-  } else {
-    showToast('Invalid credentials');
-  }
+  fetch("/api/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password }),
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success && data.token) {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("username", username);
+        showToast("Login successful!");
+        initApp();
+      } else {
+        showToast("Invalid credentials", true);
+      }
+    })
+    .catch(() => showToast("Login error", true));
 }
 
 function logout() {
-  localStorage.removeItem('cms_token');
-  localStorage.removeItem('cms_user');
-  document.getElementById('appSection').style.display = 'none';
-  document.getElementById('loginSection').style.display = 'block';
-  showToast('Logged out');
+  localStorage.clear();
+  location.reload();
 }
 
-// AUTH CHECK
 function checkAndHandleToken() {
-  const token = localStorage.getItem('cms_token');
-  const user = localStorage.getItem('cms_user');
-  if (token && user) {
-    currentUser = user;
-    document.getElementById('welcomeText').textContent = 'Welcome, ' + currentUser;
-    document.getElementById('loginSection').style.display = 'none';
-    document.getElementById('appSection').style.display = 'block';
-    document.getElementById('logoutBtn').style.display = 'inline-block';
-    loadCases();
-    renderCases();
-  } else {
-    document.getElementById('loginSection').style.display = 'block';
-    document.getElementById('appSection').style.display = 'none';
-  }
+  const token = localStorage.getItem("token");
+  if (token) initApp();
 }
 
-// TOAST
-function showToast(message) {
-  const toastEl = document.getElementById('toast');
-  const toastMsg = document.getElementById('toastMessage');
-  toastMsg.textContent = message;
-  const toast = new bootstrap.Toast(toastEl);
-  toast.show();
+// ========== App Initialization ==========
+
+function initApp() {
+  document.getElementById("loginSection").style.display = "none";
+  document.getElementById("appSection").style.display = "block";
+  document.getElementById("welcomeText").innerText =
+    "Welcome, " + localStorage.getItem("username");
+  document.getElementById("logoutBtn").style.display = "inline-block";
+  loadCases();
 }
 
-// CASE MODAL
-function showAddCaseModal(index = null) {
-  editingIndex = index;
-  document.getElementById('caseModalLabel').textContent = index === null ? 'Add Case' : 'Edit Case';
+// ========== Toast ==========
 
-  const fields = ['Date', 'Name', 'Mobile', 'AltNo', 'Work', 'FrameSize', 'FrameColor', 'RequiredDetails', 'AdvanceGiven', 'ActualPrice', 'Remarks', 'Status'];
-  if (index !== null) {
-    const c = cases[index];
-    fields.forEach(f => {
-      const id = 'case' + f;
-      document.getElementById(id).value = c[f.toLowerCase()];
-    });
-  } else {
-    fields.forEach(f => {
-      const id = 'case' + f;
-      document.getElementById(id).value = '';
-    });
-  }
-
-  new bootstrap.Modal(document.getElementById('caseModal')).show();
+function showToast(message, isError = false) {
+  const toast = document.getElementById("toast");
+  const toastMessage = document.getElementById("toastMessage");
+  toastMessage.innerText = message;
+  toast.className = "toast show " + (isError ? "bg-danger text-white" : "bg-success text-white");
+  setTimeout(() => (toast.className = "toast hide"), 3000);
 }
 
-// SAVE CASE
-function saveCase() {
-  const newCase = {
-    date: document.getElementById('caseDate').value,
-    name: document.getElementById('caseName').value,
-    mobile: document.getElementById('caseMobile').value,
-    altno: document.getElementById('altNo').value,
-    work: document.getElementById('caseWork').value,
-    framesize: document.getElementById('caseFrameSize').value,
-    framecolor: document.getElementById('caseFrameColor').value,
-    requireddetails: document.getElementById('caseRequiredDetails').value,
-    advancegiven: document.getElementById('caseAdvanceGiven').value,
-    actualprice: document.getElementById('caseActualPrice').value,
-    remarks: document.getElementById('caseRemarks').value,
-    status: document.getElementById('caseStatus').value
-  };
-
-  if (editingIndex !== null) {
-    cases[editingIndex] = newCase;
-    showToast('Case updated');
-  } else {
-    cases.push(newCase);
-    showToast('Case added');
-  }
-
-  saveCases();
-  renderCases();
-  bootstrap.Modal.getInstance(document.getElementById('caseModal')).hide();
-}
-
-// DELETE CASE
-function deleteCase(index) {
-  if (confirm('Are you sure you want to delete this case?')) {
-    cases.splice(index, 1);
-    saveCases();
-    renderCases();
-    showToast('Case deleted');
-  }
-}
-
-// RENDER CASES
-function renderCases() {
-  const start = (currentPage - 1) * itemsPerPage;
-  const filtered = filterCases();
-  const paginated = filtered.slice(start, start + itemsPerPage);
-
-  const table = document.getElementById('casesTable');
-  table.innerHTML = '';
-
-  if (paginated.length === 0) {
-    table.innerHTML = '<tr><td colspan="12" class="text-center">No cases found</td></tr>';
-  } else {
-    paginated.forEach((c, i) => {
-      const row = `
-        <tr>
-          <td>${c.date}</td>
-          <td>${c.name}</td>
-          <td>${c.mobile}</td>
-          <td>${c.altno}</td>
-          <td>${c.work}</td>
-          <td>${c.framesize}</td>
-          <td>${c.framecolor}</td>
-          <td>${c.requireddetails}</td>
-          <td>${c.advancegiven}</td>
-          <td>${c.actualprice}</td>
-          <td>${c.status}</td>
-          <td>
-            <button class="btn btn-sm btn-primary" onclick="showAddCaseModal(${cases.indexOf(c)})">Edit</button>
-            <button class="btn btn-sm btn-danger" onclick="deleteCase(${cases.indexOf(c)})">Delete</button>
-          </td>
-        </tr>`;
-      table.innerHTML += row;
-    });
-  }
-
-  document.getElementById('pageIndicator').textContent = `Page ${currentPage}`;
-}
-
-// PAGINATION
-function changePage(direction) {
-  const totalPages = Math.ceil(filterCases().length / itemsPerPage);
-  currentPage += direction;
-  if (currentPage < 1) currentPage = 1;
-  if (currentPage > totalPages) currentPage = totalPages;
-  renderCases();
-}
-
-// SEARCH
-function applySearch() {
-  currentPage = 1;
-  renderCases();
-}
-
-function filterCases() {
-  const keyword = document.getElementById('searchInput').value.toLowerCase();
-  return cases.filter(c => Object.values(c).some(v => v.toLowerCase().includes(keyword)));
-}
-
-// STORAGE
-function saveCases() {
-  localStorage.setItem('cms_cases', JSON.stringify(cases));
-}
+// ========== Case Management ==========
 
 function loadCases() {
-  const saved = localStorage.getItem('cms_cases');
-  if (saved) {
-    cases = JSON.parse(saved);
-  }
+  fetch("/api/cases", {
+    headers: { Authorization: "Bearer " + localStorage.getItem("token") },
+  })
+    .then(res => res.json())
+    .then(data => {
+      casesData = data;
+      renderCases();
+    })
+    .catch(() => showToast("Failed to load cases", true));
 }
 
-// EXPORT TO EXCEL
-function exportToExcel() {
-  const from = document.getElementById('fromDate').value;
-  const to = document.getElementById('toDate').value;
-  if (!from || !to) {
-    showToast('Select both dates');
-    return;
-  }
+function renderCases() {
+  const start = (currentPage - 1) * casesPerPage;
+  const end = start + casesPerPage;
+  const filtered = applySearch(true);
+  const visibleCases = filtered.slice(start, end);
 
-  const filtered = cases.filter(c => c.date >= from && c.date <= to);
-  if (filtered.length === 0) {
-    showToast('No records found');
-    return;
-  }
+  const table = document.getElementById("casesTable");
+  table.innerHTML = "";
 
-  let csv = 'Date,Name,Mobile,Alt No,Work,Frame Size,Frame Color,Required Details,Advance Given,Actual Price,Remarks,Status\n';
-  filtered.forEach(c => {
-    csv += `${c.date},${c.name},${c.mobile},${c.altno},${c.work},${c.framesize},${c.framecolor},${c.requireddetails},${c.advancegiven},${c.actualprice},${c.remarks},${c.status}\n`;
+  visibleCases.forEach((c) => {
+    const row = `<tr>
+      <td>${c.date}</td>
+      <td>${c.name}</td>
+      <td>${c.mobile}</td>
+      <td>${c.altNo}</td>
+      <td>${c.work}</td>
+      <td>${c.frameSize}</td>
+      <td>${c.frameColor}</td>
+      <td>${c.requiredDetails}</td>
+      <td>${c.advanceGiven}</td>
+      <td>${c.actualPrice}</td>
+      <td>${c.status}</td>
+      <td>
+        <button class="btn btn-sm btn-warning" onclick="editCase('${c._id}')">Edit</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteCase('${c._id}')">Delete</button>
+      </td>
+    </tr>`;
+    table.innerHTML += row;
   });
 
-  const blob = new Blob([csv], { type: 'text/csv' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = `Cases_${from}_to_${to}.csv`;
-  link.click();
+  document.getElementById("pageIndicator").innerText =
+    `Page ${currentPage} of ${Math.ceil(filtered.length / casesPerPage)}`;
 }
 
-// CHANGE PASSWORD
+function changePage(step) {
+  const maxPage = Math.ceil(applySearch(true).length / casesPerPage);
+  currentPage = Math.max(1, Math.min(currentPage + step, maxPage));
+  renderCases();
+}
+
+function applySearch(returnData = false) {
+  const query = document.getElementById("searchInput").value.toLowerCase();
+  const filtered = casesData.filter(c =>
+    Object.values(c).some(val => String(val).toLowerCase().includes(query))
+  );
+
+  if (!returnData) {
+    currentPage = 1;
+    renderCases();
+  }
+
+  return filtered;
+}
+
+function showAddCaseModal() {
+  editingCaseId = null;
+  document.getElementById("caseModalLabel").innerText = "Add Customer";
+  document.getElementById("saveCaseBtn").innerText = "Add";
+  document.querySelectorAll("#caseModal input, #caseModal textarea, #caseModal select").forEach(el => el.value = "");
+  new bootstrap.Modal(document.getElementById("caseModal")).show();
+}
+
+function editCase(id) {
+  const caseData = casesData.find(c => c._id === id);
+  if (!caseData) return;
+
+  editingCaseId = id;
+  document.getElementById("caseModalLabel").innerText = "Edit Customer";
+  document.getElementById("saveCaseBtn").innerText = "Update";
+
+  for (let key in caseData) {
+    const input = document.getElementById("case" + capitalize(key));
+    if (input) input.value = caseData[key];
+  }
+
+  new bootstrap.Modal(document.getElementById("caseModal")).show();
+}
+
+function saveCase() {
+  const newCase = {
+    date: document.getElementById("caseDate").value,
+    name: document.getElementById("caseName").value,
+    mobile: document.getElementById("caseMobile").value,
+    altNo: document.getElementById("altNo").value,
+    work: document.getElementById("caseWork").value,
+    frameSize: document.getElementById("caseFrameSize").value,
+    frameColor: document.getElementById("caseFrameColor").value,
+    requiredDetails: document.getElementById("caseRequiredDetails").value,
+    advanceGiven: document.getElementById("caseAdvanceGiven").value,
+    actualPrice: document.getElementById("caseActualPrice").value,
+    remarks: document.getElementById("caseRemarks").value,
+    status: document.getElementById("caseStatus").value,
+  };
+
+  const method = editingCaseId ? "PUT" : "POST";
+  const url = editingCaseId ? `/api/cases/${editingCaseId}` : "/api/cases";
+
+  fetch(url, {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + localStorage.getItem("token"),
+    },
+    body: JSON.stringify(newCase),
+  })
+    .then(res => res.json())
+    .then(() => {
+      showToast(editingCaseId ? "Case updated!" : "Case added!");
+      document.querySelector(".modal.show .btn-close").click();
+      loadCases();
+    })
+    .catch(() => showToast("Error saving case", true));
+}
+
+function deleteCase(id) {
+  if (!confirm("Delete this case?")) return;
+
+  fetch(`/api/cases/${id}`, {
+    method: "DELETE",
+    headers: { Authorization: "Bearer " + localStorage.getItem("token") },
+  })
+    .then(() => {
+      showToast("Case deleted");
+      loadCases();
+    })
+    .catch(() => showToast("Error deleting case", true));
+}
+
+function capitalize(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+// ========== Export & Password Change ==========
+
+function exportToExcel() {
+  const fromDate = document.getElementById("fromDate").value;
+  const toDate = document.getElementById("toDate").value;
+
+  fetch("/api/export", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + localStorage.getItem("token"),
+    },
+    body: JSON.stringify({ fromDate, toDate }),
+  })
+    .then(response => response.blob())
+    .then(blob => {
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "cases_report.xlsx";
+      link.click();
+      showToast("Excel exported!");
+    })
+    .catch(() => showToast("Export failed", true));
+}
+
 function changePassword() {
-  const oldPass = document.getElementById('oldPassword').value;
-  const newPass = document.getElementById('newPassword').value;
-  const confirmPass = document.getElementById('confirmPassword').value;
+  const oldPassword = document.getElementById("oldPassword").value;
+  const newPassword = document.getElementById("newPassword").value;
+  const confirmPassword = document.getElementById("confirmPassword").value;
 
-  if (oldPass !== '1234') {
-    showToast('Old password is incorrect');
-    return;
+  if (newPassword !== confirmPassword) {
+    return showToast("Passwords don't match", true);
   }
 
-  if (!newPass || newPass !== confirmPass) {
-    showToast('Passwords do not match');
-    return;
-  }
-
-  showToast('Password changed (simulated)');
+  fetch("/api/change-password", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + localStorage.getItem("token"),
+    },
+    body: JSON.stringify({ oldPassword, newPassword }),
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        showToast("Password changed successfully!");
+        document.getElementById("oldPassword").value = "";
+        document.getElementById("newPassword").value = "";
+        document.getElementById("confirmPassword").value = "";
+      } else {
+        showToast(data.message || "Password change failed", true);
+      }
+    })
+    .catch(() => showToast("Error changing password", true));
 }
