@@ -1,196 +1,278 @@
 const API_BASE = 'https://backend-7l9n.onrender.com';
-let currentPage = 1;
+let token = localStorage.getItem('token');
 let allCases = [];
+let currentPage = 1;
 const casesPerPage = 10;
 
-// Auth token check
-const token = localStorage.getItem('token');
-if (!token) window.location.reload();
+// DOM elements
+const loginSection = document.getElementById('loginSection');
+const mainApp = document.getElementById('mainApp');
+const loginBtn = document.getElementById('loginBtn');
+const logoutBtn = document.getElementById('logoutBtn');
+const toast = document.getElementById('toast');
+const spinner = document.getElementById('loadingSpinner');
+const pagination = document.getElementById('pagination');
+
+// Show toast
+function showToast(msg) {
+  toast.textContent = msg;
+  toast.classList.remove('hidden');
+  setTimeout(() => toast.classList.add('hidden'), 3000);
+}
+
+// Show/hide spinner
+function toggleSpinner(show) {
+  spinner.classList.toggle('hidden', !show);
+}
+
+// Toggle views
+function toggleAuthViews() {
+  const loggedIn = !!token;
+  loginSection.classList.toggle('hidden', loggedIn);
+  mainApp.classList.toggle('hidden', !loggedIn);
+  if (loggedIn) loadCases();
+}
+
+// Login
+loginBtn.onclick = async () => {
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value.trim();
+  if (!username || !password) return showToast('Enter credentials');
+  try {
+    const res = await fetch(`${API_BASE}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      token = data.token;
+      localStorage.setItem('token', token);
+      toggleAuthViews();
+      showToast('Login successful');
+    } else {
+      showToast(data.error || 'Login failed');
+    }
+  } catch {
+    showToast('Server error');
+  }
+};
 
 // Logout
-document.getElementById('logoutBtn').addEventListener('click', () => {
+logoutBtn.onclick = () => {
+  token = null;
   localStorage.removeItem('token');
-  window.location.reload();
-});
-
-// Tabs switching
-const tabs = {
-  casesTab: 'casesSection',
-  reportsTab: 'reportsSection',
-  settingsTab: 'settingsSection',
+  toggleAuthViews();
 };
-Object.keys(tabs).forEach(id => {
-  document.getElementById(id).addEventListener('click', () => {
-    Object.values(tabs).forEach(sec => document.getElementById(sec).classList.add('hidden'));
-    Object.keys(tabs).forEach(t => document.getElementById(t).classList.remove('active-tab'));
-    document.getElementById(tabs[id]).classList.remove('hidden');
-    document.getElementById(id).classList.add('active-tab');
-  });
-});
 
-// Toast
-function showToast(message, color = 'green') {
-  const toast = document.createElement('div');
-  toast.className = `fixed top-4 right-4 bg-${color}-500 text-white px-4 py-2 rounded shadow z-50`;
-  toast.innerText = message;
-  document.body.appendChild(toast);
-  setTimeout(() => toast.remove(), 3000);
-}
-
-// Spinner
-function toggleLoading(show) {
-  document.getElementById('loadingSpinner').classList.toggle('hidden', !show);
-}
-
-// Load cases
-function loadCases() {
-  toggleLoading(true);
-  fetch(`${API_BASE}/cases`, { headers: { Authorization: `Bearer ${token}` } })
-    .then(res => res.json())
-    .then(data => {
-      allCases = data;
-      showPage(1);
-      toggleLoading(false);
-    })
-    .catch(() => {
-      showToast('Failed to load cases', 'red');
-      toggleLoading(false);
+// Load all cases
+async function loadCases() {
+  toggleSpinner(true);
+  try {
+    const res = await fetch(`${API_BASE}/cases`, {
+      headers: { Authorization: `Bearer ${token}` }
     });
+    allCases = await res.json();
+    renderCases();
+  } catch {
+    showToast('Failed to load cases');
+  }
+  toggleSpinner(false);
 }
 
-// Show cases per page
-function showPage(page) {
-  currentPage = page;
-  const start = (page - 1) * casesPerPage;
-  const pageCases = allCases.slice(start, start + casesPerPage);
-
-  const tbody = document.getElementById('caseTableBody');
+// Render paginated cases
+function renderCases() {
+  const start = (currentPage - 1) * casesPerPage;
+  const paginatedCases = allCases.slice(start, start + casesPerPage);
+  const tbody = document.getElementById('casesTableBody');
   tbody.innerHTML = '';
-  pageCases.forEach(c => {
+  paginatedCases.forEach(c => {
     const row = document.createElement('tr');
     row.innerHTML = `
-      <td>${c.date}</td><td>${c.name}</td><td>${c.mobile}</td><td>${c.altMobile}</td>
-      <td>${c.work}</td><td>${c.frameSize}</td><td>${c.frameColor}</td><td>${c.requiredDetails}</td>
-      <td>${c.advance}</td><td>${c.actualPrice}</td><td>${c.status}</td>
-      <td>
-        <button onclick="editCase('${c.id}')" class="text-blue-600 font-semibold">Edit</button>
-        <button onclick="deleteCase('${c.id}')" class="text-red-600 font-semibold ml-2">Delete</button>
+      <td class="py-1 px-2">${c.date}</td>
+      <td class="py-1 px-2">${c.name}</td>
+      <td class="py-1 px-2">${c.mobile}</td>
+      <td class="py-1 px-2">${c.altMobile}</td>
+      <td class="py-1 px-2">${c.work}</td>
+      <td class="py-1 px-2">${c.frameSize}</td>
+      <td class="py-1 px-2">${c.frameColor}</td>
+      <td class="py-1 px-2">${c.requiredDetails}</td>
+      <td class="py-1 px-2">${c.advance}</td>
+      <td class="py-1 px-2">${c.actualPrice}</td>
+      <td class="py-1 px-2">${c.status}</td>
+      <td class="py-1 px-2">
+        <button onclick='editCase(${JSON.stringify(c)})' class="text-blue-600">Edit</button>
+        <button onclick='deleteCase("${c.id}")' class="text-red-600 ml-2">Delete</button>
       </td>`;
     tbody.appendChild(row);
   });
+  renderPagination();
+}
 
-  // Pagination buttons
-  const pageCount = Math.ceil(allCases.length / casesPerPage);
-  const pagination = document.getElementById('pagination');
+// Render pagination buttons
+function renderPagination() {
   pagination.innerHTML = '';
-  for (let i = 1; i <= pageCount; i++) {
+  const totalPages = Math.ceil(allCases.length / casesPerPage);
+  for (let i = 1; i <= totalPages; i++) {
     const btn = document.createElement('button');
-    btn.innerText = i;
-    btn.className = `px-3 py-1 border rounded ${i === page ? 'bg-blue-500 text-white' : 'bg-gray-200'}`;
-    btn.addEventListener('click', () => showPage(i));
+    btn.textContent = i;
+    btn.className = `px-3 py-1 rounded ${i === currentPage ? 'bg-blue-600 text-white' : 'bg-gray-200'}`;
+    btn.onclick = () => {
+      currentPage = i;
+      renderCases();
+    };
     pagination.appendChild(btn);
   }
 }
 
-// Delete
-window.deleteCase = (id) => {
-  if (!confirm('Delete this case?')) return;
-  toggleLoading(true);
-  fetch(`${API_BASE}/cases/${id}`, {
-    method: 'DELETE',
-    headers: { Authorization: `Bearer ${token}` },
-  })
-    .then(() => {
-      showToast('Deleted successfully');
-      loadCases();
-    })
-    .catch(() => {
-      showToast('Delete failed', 'red');
-      toggleLoading(false);
-    });
-};
+// Add/Edit case
+const openModalBtn = document.getElementById('openAddModalBtn');
+const caseModal = document.getElementById('caseModal');
+const closeModalBtn = document.getElementById('closeModalBtn');
+const caseForm = document.getElementById('caseForm');
 
-// Modal control
-document.getElementById('openAddModalBtn').onclick = () => {
-  document.getElementById('modalTitle').innerText = 'Add Case';
-  document.getElementById('caseForm').reset();
+openModalBtn.onclick = () => {
+  caseForm.reset();
   document.getElementById('caseId').value = '';
-  document.getElementById('caseModal').classList.remove('hidden');
+  document.getElementById('modalTitle').textContent = 'Add Case';
+  caseModal.classList.remove('hidden');
 };
-document.getElementById('closeModalBtn').onclick = () =>
-  document.getElementById('caseModal').classList.add('hidden');
+closeModalBtn.onclick = () => caseModal.classList.add('hidden');
+
+caseForm.onsubmit = async (e) => {
+  e.preventDefault();
+  const data = {};
+  ['caseId','date','name','mobile','altMobile','work','frameSize','frameColor','requiredDetails','advance','actualPrice','status'].forEach(id => {
+    data[id === 'caseId' ? 'id' : id] = document.getElementById(id).value;
+  });
+
+  toggleSpinner(true);
+  const isEdit = !!data.id;
+  try {
+    const url = `${API_BASE}/cases${isEdit ? '/' + data.id : ''}`;
+    const method = isEdit ? 'PUT' : 'POST';
+    const res = await fetch(url, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(data)
+    });
+    if (res.ok) {
+      showToast(isEdit ? 'Case updated' : 'Case added');
+      caseModal.classList.add('hidden');
+      loadCases();
+    } else {
+      const err = await res.json();
+      showToast(err.error || 'Failed to save');
+    }
+  } catch {
+    showToast('Server error');
+  }
+  toggleSpinner(false);
+};
 
 // Edit case
-window.editCase = (id) => {
-  const caseData = allCases.find(c => c.id === id);
-  if (!caseData) return;
-  document.getElementById('modalTitle').innerText = 'Edit Case';
-  Object.entries(caseData).forEach(([key, value]) => {
-    const el = document.getElementById(key);
-    if (el) el.value = value;
+window.editCase = (data) => {
+  document.getElementById('modalTitle').textContent = 'Edit Case';
+  Object.keys(data).forEach(k => {
+    if (document.getElementById(k)) {
+      document.getElementById(k).value = data[k];
+    }
   });
-  document.getElementById('caseModal').classList.remove('hidden');
+  caseModal.classList.remove('hidden');
 };
 
-// Save/Add case
-document.getElementById('caseForm').addEventListener('submit', (e) => {
-  e.preventDefault();
-  toggleLoading(true);
-  const id = caseId.value;
-  const payload = {
-    date: date.value, name: name.value, mobile: mobile.value, altMobile: altMobile.value,
-    work: work.value, frameSize: frameSize.value, frameColor: frameColor.value,
-    requiredDetails: requiredDetails.value, advance: advance.value,
-    actualPrice: actualPrice.value, status: status.value,
-  };
-
-  const url = id ? `${API_BASE}/cases/${id}` : `${API_BASE}/cases`;
-  const method = id ? 'PUT' : 'POST';
-
-  fetch(url, {
-    method,
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(payload),
-  })
-    .then(res => res.json())
-    .then(() => {
-      showToast(id ? 'Case updated' : 'Case added');
-      document.getElementById('caseModal').classList.add('hidden');
-      loadCases();
-    })
-    .catch(() => {
-      showToast('Operation failed', 'red');
-      toggleLoading(false);
+// Delete case
+window.deleteCase = async (id) => {
+  if (!confirm('Delete this case?')) return;
+  toggleSpinner(true);
+  try {
+    const res = await fetch(`${API_BASE}/cases/${id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` }
     });
-});
+    if (res.ok) {
+      showToast('Case deleted');
+      loadCases();
+    } else {
+      showToast('Delete failed');
+    }
+  } catch {
+    showToast('Error deleting');
+  }
+  toggleSpinner(false);
+};
+
+// Search filter
+document.getElementById('searchInput').oninput = (e) => {
+  const q = e.target.value.toLowerCase();
+  const filtered = allCases.filter(c =>
+    c.name.toLowerCase().includes(q) ||
+    c.mobile.includes(q) ||
+    c.altMobile.includes(q)
+  );
+  allCases = filtered.length ? filtered : allCases;
+  currentPage = 1;
+  renderCases();
+};
 
 // Export
-document.getElementById('exportBtn').addEventListener('click', () => {
-  const from = fromDate.value;
-  const to = toDate.value;
-  if (!from || !to) return alert('Select both dates');
-  window.open(`${API_BASE}/cases/export?from=${from}&to=${to}&token=${token}`, '_blank');
-});
+document.getElementById('exportBtn').onclick = async () => {
+  const from = document.getElementById('fromDate').value;
+  const to = document.getElementById('toDate').value;
+  if (!from || !to) return showToast('Select dates');
+  try {
+    const res = await fetch(`${API_BASE}/export?from=${from}&to=${to}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'report.xlsx';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    showToast('Exported');
+  } catch {
+    showToast('Export failed');
+  }
+};
 
 // Change password
-document.getElementById('changePasswordBtn').addEventListener('click', () => {
-  fetch(`${API_BASE}/change-password`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({
-      oldPassword: oldPassword.value,
-      newPassword: newPassword.value,
-    }),
-  })
-    .then(res => res.json())
-    .then(data => showToast(data.message))
-    .catch(() => showToast('Password change failed', 'red'));
+document.getElementById('changePasswordBtn').onclick = async () => {
+  const oldPass = document.getElementById('oldPassword').value;
+  const newPass = document.getElementById('newPassword').value;
+  if (!oldPass || !newPass) return showToast('Enter both passwords');
+  try {
+    const res = await fetch(`${API_BASE}/change-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ oldPassword: oldPass, newPassword: newPass })
+    });
+    const data = await res.json();
+    if (res.ok) showToast('Password changed');
+    else showToast(data.error || 'Failed');
+  } catch {
+    showToast('Error changing password');
+  }
+};
+
+// Tabs
+['casesTab', 'reportsTab', 'settingsTab'].forEach(tabId => {
+  document.getElementById(tabId).onclick = () => {
+    document.querySelectorAll('.tab-content').forEach(sec => sec.classList.add('hidden'));
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active-tab'));
+    document.getElementById(tabId).classList.add('active-tab');
+    const sectionId = tabId.replace('Tab', 'Section');
+    document.getElementById(sectionId).classList.remove('hidden');
+  };
 });
 
-loadCases();
+// Init
+toggleAuthViews();
