@@ -1,3 +1,4 @@
+<!-- Save as index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,50 +8,64 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 text-gray-800">
-  <!-- Navbar -->
-  <nav class="bg-white shadow-md sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-      <h1 class="text-xl font-bold">📁 Customer Case Manager</h1>
-      <button id="logoutBtn" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">Logout</button>
-    </div>
-  </nav>
 
-  <!-- Tabs -->
-  <div class="max-w-7xl mx-auto px-4 py-6">
-    <div class="flex space-x-4 mb-6">
-      <button id="casesTab" class="tab-btn active-tab">Cases</button>
-      <button id="reportsTab" class="tab-btn">Reports</button>
-      <button id="settingsTab" class="tab-btn">Settings</button>
+  <!-- LOGIN SECTION -->
+  <div id="loginSection" class="min-h-screen flex items-center justify-center">
+    <div class="bg-white p-8 rounded-lg shadow-md max-w-sm w-full">
+      <h2 class="text-2xl font-bold mb-4 text-center">Login</h2>
+      <input type="text" id="username" placeholder="Username" class="input-box mb-3">
+      <input type="password" id="password" placeholder="Password" class="input-box mb-4">
+      <button id="loginBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">Login</button>
+      <p id="loginError" class="text-red-500 mt-2 text-sm hidden">Invalid credentials</p>
     </div>
+  </div>
 
-    <!-- Cases Section -->
-    <div id="casesSection" class="tab-content">
-      <div class="flex justify-between mb-4">
-        <h2 class="text-xl font-semibold">All Cases</h2>
-        <button id="openAddModalBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">+ New Case</button>
+  <!-- APP SECTION -->
+  <div id="appSection" class="hidden">
+
+    <!-- Navbar -->
+    <nav class="bg-white shadow-md sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+        <h1 class="text-xl font-bold">📁 Customer Case Manager</h1>
+        <button id="logoutBtn" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">Logout</button>
+      </div>
+    </nav>
+
+    <!-- Tabs -->
+    <div class="max-w-7xl mx-auto px-4 py-6">
+      <div class="flex space-x-4 mb-6">
+        <button id="casesTab" class="tab-btn active-tab">Cases</button>
+        <button id="reportsTab" class="tab-btn">Reports</button>
+        <button id="settingsTab" class="tab-btn">Settings</button>
       </div>
 
-      <!-- Table in iframe -->
-      <iframe id="caseTableFrame" class="w-full h-[500px] border rounded-lg"></iframe>
-    </div>
-
-    <!-- Reports Section -->
-    <div id="reportsSection" class="tab-content hidden">
-      <h2 class="text-xl font-semibold mb-4">📊 Reports</h2>
-      <div class="space-y-2">
-        <input type="date" id="fromDate" class="input-box" />
-        <input type="date" id="toDate" class="input-box" />
-        <button id="exportBtn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">Export to Excel</button>
+      <!-- CASES -->
+      <div id="casesSection" class="tab-content">
+        <div class="flex justify-between mb-4">
+          <h2 class="text-xl font-semibold">All Cases</h2>
+          <button id="openAddModalBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">+ New Case</button>
+        </div>
+        <iframe id="caseTableFrame" class="w-full h-[500px] border rounded-lg"></iframe>
       </div>
-    </div>
 
-    <!-- Settings Section -->
-    <div id="settingsSection" class="tab-content hidden">
-      <h2 class="text-xl font-semibold mb-4">⚙️ Change Password</h2>
-      <div class="space-y-3 max-w-md">
-        <input type="password" id="oldPassword" placeholder="Old Password" class="input-box"/>
-        <input type="password" id="newPassword" placeholder="New Password" class="input-box"/>
-        <button id="changePasswordBtn" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded">Change Password</button>
+      <!-- REPORTS -->
+      <div id="reportsSection" class="tab-content hidden">
+        <h2 class="text-xl font-semibold mb-4">📊 Reports</h2>
+        <div class="space-y-2">
+          <input type="date" id="fromDate" class="input-box" />
+          <input type="date" id="toDate" class="input-box" />
+          <button id="exportBtn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">Export to Excel</button>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div id="settingsSection" class="tab-content hidden">
+        <h2 class="text-xl font-semibold mb-4">⚙️ Change Password</h2>
+        <div class="space-y-3 max-w-md">
+          <input type="password" id="oldPassword" placeholder="Old Password" class="input-box"/>
+          <input type="password" id="newPassword" placeholder="New Password" class="input-box"/>
+          <button id="changePasswordBtn" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded">Change Password</button>
+        </div>
       </div>
     </div>
   </div>
