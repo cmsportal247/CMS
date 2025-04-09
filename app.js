@@ -102,4 +102,44 @@ caseForm.onsubmit = async (e) => {
     const res = await fetch(url, {
       method,
       headers: {
-        'Content-Type
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    });
+    if (res.ok) {
+      showToast(isEdit ? 'Case updated' : 'Case added');
+      caseModal.classList.add('hidden');
+      loadCases();
+    } else {
+      const err = await res.json();
+      showToast(err.error || 'Failed to save');
+    }
+  } catch {
+    showToast('Server error');
+  }
+  toggleSpinner(false);
+};
+
+// Export reports to Excel
+exportBtn.onclick = async () => {
+  const from = document.getElementById('fromDate').value;
+  const to = document.getElementById('toDate').value;
+  if (!from || !to) return showToast('Select dates');
+  try {
+    const res = await fetch(`${API_BASE}/export?from=${from}&to=${to}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) {
+      showToast('Export failed');
+      return;
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'report.xlsx';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    showToast('
