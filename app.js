@@ -133,6 +133,7 @@ caseForm.addEventListener("submit", async (e) => {
         const data = await res.json();
         caseModal.hide();
         fetchCases(currentPage);
+        alert(data.message); // Displaying response message (success or failure)
     } catch (error) {
         console.error("Error saving case:", error);
     } finally {
@@ -170,4 +171,13 @@ function generateExcelReport() {
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Cases");
             XLSX.writeFile(wb, "cases_report.xlsx");
-            toggleLoading(false
+            toggleLoading(false);
+        })
+        .catch((error) => {
+            console.error("Error generating report:", error);
+            toggleLoading(false);
+        });
+}
+
+// Fetch the initial list of cases
+fetchCases();
