@@ -11,6 +11,7 @@
     <div class="container mt-5">
         <!-- Case Table -->
         <h1>Case Management</h1>
+        <button class="btn btn-success mb-3" onclick="addCase()">Add New Case</button>
         <table class="table table-bordered" id="caseTable">
             <thead>
                 <tr>
@@ -32,6 +33,7 @@
         <nav>
             <ul class="pagination" id="pagination"></ul>
         </nav>
+        <button class="btn btn-primary" onclick="generateExcelReport()">Generate Report (Excel)</button>
     </div>
 
     <!-- Modal for Adding / Editing Case -->
@@ -53,7 +55,26 @@
                             <label for="mobile" class="form-label">Mobile</label>
                             <input type="text" class="form-control" id="mobile" name="mobile" required>
                         </div>
-                        <!-- Add other form fields here (work, frame size, etc.) -->
+                        <div class="mb-3">
+                            <label for="work" class="form-label">Work</label>
+                            <input type="text" class="form-control" id="work" name="work">
+                        </div>
+                        <div class="mb-3">
+                            <label for="frameSize" class="form-label">Frame Size</label>
+                            <input type="text" class="form-control" id="frameSize" name="frameSize">
+                        </div>
+                        <div class="mb-3">
+                            <label for="frameColor" class="form-label">Frame Color</label>
+                            <input type="text" class="form-control" id="frameColor" name="frameColor">
+                        </div>
+                        <div class="mb-3">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-control" id="status" name="status">
+                                <option value="Pending">Pending</option>
+                                <option value="Completed">Completed</option>
+                                <option value="In Progress">In Progress</option>
+                            </select>
+                        </div>
                         <button type="submit" class="btn btn-primary" id="submitButton">Save</button>
                     </form>
                 </div>
