@@ -1,211 +1,196 @@
-const API_BASE = "https://backend-7l9n.onrender.com";
-let token = localStorage.getItem("token");
+const API_BASE = 'https://backend-7l9n.onrender.com';
+let currentPage = 1;
+let allCases = [];
+const casesPerPage = 10;
 
-// DOM Elements
-const logoutBtn = document.getElementById("logoutBtn");
-const openAddModalBtn = document.getElementById("openAddModalBtn");
-const caseModal = document.getElementById("caseModal");
-const closeModalBtn = document.getElementById("closeModalBtn");
-const caseForm = document.getElementById("caseForm");
-const caseTableBody = document.querySelector("#caseTable tbody");
-const modalTitle = document.getElementById("modalTitle");
-
-// Tab Buttons
-const casesTab = document.getElementById("casesTab");
-const reportsTab = document.getElementById("reportsTab");
-const settingsTab = document.getElementById("settingsTab");
-const casesSection = document.getElementById("casesSection");
-const reportsSection = document.getElementById("reportsSection");
-const settingsSection = document.getElementById("settingsSection");
-
-// Check login
-if (!token) {
-  window.location.reload(); // Or redirect to login if needed
-} else {
-  loadCases();
-}
-
-// Tab Switching
-function switchTab(activeTab) {
-  [casesTab, reportsTab, settingsTab].forEach(tab => tab.classList.remove("active-tab"));
-  [casesSection, reportsSection, settingsSection].forEach(section => section.classList.add("hidden"));
-
-  if (activeTab === "cases") {
-    casesTab.classList.add("active-tab");
-    casesSection.classList.remove("hidden");
-  } else if (activeTab === "reports") {
-    reportsTab.classList.add("active-tab");
-    reportsSection.classList.remove("hidden");
-  } else {
-    settingsTab.classList.add("active-tab");
-    settingsSection.classList.remove("hidden");
-  }
-}
-
-casesTab.onclick = () => switchTab("cases");
-reportsTab.onclick = () => switchTab("reports");
-settingsTab.onclick = () => switchTab("settings");
+// Auth token check
+const token = localStorage.getItem('token');
+if (!token) window.location.reload();
 
 // Logout
-logoutBtn.onclick = () => {
-  localStorage.removeItem("token");
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  localStorage.removeItem('token');
   window.location.reload();
+});
+
+// Tabs switching
+const tabs = {
+  casesTab: 'casesSection',
+  reportsTab: 'reportsSection',
+  settingsTab: 'settingsSection',
 };
+Object.keys(tabs).forEach(id => {
+  document.getElementById(id).addEventListener('click', () => {
+    Object.values(tabs).forEach(sec => document.getElementById(sec).classList.add('hidden'));
+    Object.keys(tabs).forEach(t => document.getElementById(t).classList.remove('active-tab'));
+    document.getElementById(tabs[id]).classList.remove('hidden');
+    document.getElementById(id).classList.add('active-tab');
+  });
+});
 
-// Open Modal for New Case
-openAddModalBtn.onclick = () => {
-  modalTitle.textContent = "Add Case";
-  caseForm.reset();
-  document.getElementById("caseId").value = "";
-  caseModal.classList.remove("hidden");
-};
+// Toast
+function showToast(message, color = 'green') {
+  const toast = document.createElement('div');
+  toast.className = `fixed top-4 right-4 bg-${color}-500 text-white px-4 py-2 rounded shadow z-50`;
+  toast.innerText = message;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
 
-// Close Modal
-closeModalBtn.onclick = () => caseModal.classList.add("hidden");
+// Spinner
+function toggleLoading(show) {
+  document.getElementById('loadingSpinner').classList.toggle('hidden', !show);
+}
 
-// Save Case (Add or Edit)
-caseForm.onsubmit = async (e) => {
-  e.preventDefault();
-  const formData = new FormData(caseForm);
-  const caseId = formData.get("caseId");
-  const data = Object.fromEntries(formData.entries());
-
-  const url = caseId
-    ? `${API_BASE}/cases/${caseId}`
-    : `${API_BASE}/cases`;
-  const method = caseId ? "PUT" : "POST";
-
-  try {
-    await fetch(url, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + token,
-      },
-      body: JSON.stringify(data),
+// Load cases
+function loadCases() {
+  toggleLoading(true);
+  fetch(`${API_BASE}/cases`, { headers: { Authorization: `Bearer ${token}` } })
+    .then(res => res.json())
+    .then(data => {
+      allCases = data;
+      showPage(1);
+      toggleLoading(false);
+    })
+    .catch(() => {
+      showToast('Failed to load cases', 'red');
+      toggleLoading(false);
     });
-    caseModal.classList.add("hidden");
-    loadCases();
-  } catch (err) {
-    alert("Error saving case.");
-    console.error(err);
-  }
-};
+}
 
-// Load All Cases
-async function loadCases() {
-  try {
-    const res = await fetch(`${API_BASE}/cases`, {
-      headers: { Authorization: "Bearer " + token },
-    });
-    const cases = await res.json();
+// Show cases per page
+function showPage(page) {
+  currentPage = page;
+  const start = (page - 1) * casesPerPage;
+  const pageCases = allCases.slice(start, start + casesPerPage);
 
-    caseTableBody.innerHTML = "";
-    cases.forEach((c) => {
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td>${c.id || ""}</td>
-        <td>${c.date || ""}</td>
-        <td>${c.name || ""}</td>
-        <td>${c.mobile || ""}</td>
-        <td>${c.altMobile || ""}</td>
-        <td>${c.work || ""}</td>
-        <td>${c.frameSize || ""}</td>
-        <td>${c.frameColor || ""}</td>
-        <td>${c.requiredDetails || ""}</td>
-        <td>${c.advance || ""}</td>
-        <td>${c.actualPrice || ""}</td>
-        <td>${c.status || ""}</td>
-        <td class="space-x-2">
-          <button onclick='editCase(${JSON.stringify(c)})' class="text-blue-600 hover:underline">Edit</button>
-          <button onclick='deleteCase("${c.id}")' class="text-red-600 hover:underline">Delete</button>
-        </td>
-      `;
-      caseTableBody.appendChild(row);
-    });
-  } catch (err) {
-    alert("Error loading cases.");
-    console.error(err);
+  const tbody = document.getElementById('caseTableBody');
+  tbody.innerHTML = '';
+  pageCases.forEach(c => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${c.date}</td><td>${c.name}</td><td>${c.mobile}</td><td>${c.altMobile}</td>
+      <td>${c.work}</td><td>${c.frameSize}</td><td>${c.frameColor}</td><td>${c.requiredDetails}</td>
+      <td>${c.advance}</td><td>${c.actualPrice}</td><td>${c.status}</td>
+      <td>
+        <button onclick="editCase('${c.id}')" class="text-blue-600 font-semibold">Edit</button>
+        <button onclick="deleteCase('${c.id}')" class="text-red-600 font-semibold ml-2">Delete</button>
+      </td>`;
+    tbody.appendChild(row);
+  });
+
+  // Pagination buttons
+  const pageCount = Math.ceil(allCases.length / casesPerPage);
+  const pagination = document.getElementById('pagination');
+  pagination.innerHTML = '';
+  for (let i = 1; i <= pageCount; i++) {
+    const btn = document.createElement('button');
+    btn.innerText = i;
+    btn.className = `px-3 py-1 border rounded ${i === page ? 'bg-blue-500 text-white' : 'bg-gray-200'}`;
+    btn.addEventListener('click', () => showPage(i));
+    pagination.appendChild(btn);
   }
 }
 
-// Edit Case
-function editCase(c) {
-  modalTitle.textContent = "Edit Case";
-  caseModal.classList.remove("hidden");
-  for (const key in c) {
+// Delete
+window.deleteCase = (id) => {
+  if (!confirm('Delete this case?')) return;
+  toggleLoading(true);
+  fetch(`${API_BASE}/cases/${id}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` },
+  })
+    .then(() => {
+      showToast('Deleted successfully');
+      loadCases();
+    })
+    .catch(() => {
+      showToast('Delete failed', 'red');
+      toggleLoading(false);
+    });
+};
+
+// Modal control
+document.getElementById('openAddModalBtn').onclick = () => {
+  document.getElementById('modalTitle').innerText = 'Add Case';
+  document.getElementById('caseForm').reset();
+  document.getElementById('caseId').value = '';
+  document.getElementById('caseModal').classList.remove('hidden');
+};
+document.getElementById('closeModalBtn').onclick = () =>
+  document.getElementById('caseModal').classList.add('hidden');
+
+// Edit case
+window.editCase = (id) => {
+  const caseData = allCases.find(c => c.id === id);
+  if (!caseData) return;
+  document.getElementById('modalTitle').innerText = 'Edit Case';
+  Object.entries(caseData).forEach(([key, value]) => {
     const el = document.getElementById(key);
-    if (el) el.value = c[key];
-  }
-}
-
-// Delete Case
-async function deleteCase(id) {
-  if (!confirm("Are you sure?")) return;
-  try {
-    await fetch(`${API_BASE}/cases/${id}`, {
-      method: "DELETE",
-      headers: { Authorization: "Bearer " + token },
-    });
-    loadCases();
-  } catch (err) {
-    alert("Failed to delete.");
-  }
-}
-
-// Export to Excel
-document.getElementById("exportBtn").onclick = async () => {
-  const from = document.getElementById("fromDate").value;
-  const to = document.getElementById("toDate").value;
-
-  if (!from || !to) {
-    alert("Select both dates.");
-    return;
-  }
-
-  try {
-    const res = await fetch(`${API_BASE}/cases/export?from=${from}&to=${to}`, {
-      headers: { Authorization: "Bearer " + token },
-    });
-    const blob = await res.blob();
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "cases.xlsx";
-    a.click();
-    URL.revokeObjectURL(url);
-  } catch (err) {
-    alert("Export failed.");
-  }
+    if (el) el.value = value;
+  });
+  document.getElementById('caseModal').classList.remove('hidden');
 };
 
-// Change Password
-document.getElementById("changePasswordBtn").onclick = async () => {
-  const oldPassword = document.getElementById("oldPassword").value;
-  const newPassword = document.getElementById("newPassword").value;
+// Save/Add case
+document.getElementById('caseForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  toggleLoading(true);
+  const id = caseId.value;
+  const payload = {
+    date: date.value, name: name.value, mobile: mobile.value, altMobile: altMobile.value,
+    work: work.value, frameSize: frameSize.value, frameColor: frameColor.value,
+    requiredDetails: requiredDetails.value, advance: advance.value,
+    actualPrice: actualPrice.value, status: status.value,
+  };
 
-  if (!oldPassword || !newPassword) {
-    alert("Fill both fields.");
-    return;
-  }
+  const url = id ? `${API_BASE}/cases/${id}` : `${API_BASE}/cases`;
+  const method = id ? 'PUT' : 'POST';
 
-  try {
-    const res = await fetch(`${API_BASE}/change-password`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + token,
-      },
-      body: JSON.stringify({ oldPassword, newPassword }),
+  fetch(url, {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  })
+    .then(res => res.json())
+    .then(() => {
+      showToast(id ? 'Case updated' : 'Case added');
+      document.getElementById('caseModal').classList.add('hidden');
+      loadCases();
+    })
+    .catch(() => {
+      showToast('Operation failed', 'red');
+      toggleLoading(false);
     });
-    const data = await res.json();
+});
 
-    if (res.ok) {
-      alert("Password changed successfully.");
-    } else {
-      alert(data.message || "Password change failed.");
-    }
-  } catch (err) {
-    alert("Error changing password.");
-  }
-};
+// Export
+document.getElementById('exportBtn').addEventListener('click', () => {
+  const from = fromDate.value;
+  const to = toDate.value;
+  if (!from || !to) return alert('Select both dates');
+  window.open(`${API_BASE}/cases/export?from=${from}&to=${to}&token=${token}`, '_blank');
+});
+
+// Change password
+document.getElementById('changePasswordBtn').addEventListener('click', () => {
+  fetch(`${API_BASE}/change-password`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      oldPassword: oldPassword.value,
+      newPassword: newPassword.value,
+    }),
+  })
+    .then(res => res.json())
+    .then(data => showToast(data.message))
+    .catch(() => showToast('Password change failed', 'red'));
+});
+
+loadCases();
