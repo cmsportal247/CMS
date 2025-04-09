@@ -9,9 +9,12 @@
 </head>
 <body>
     <div class="container mt-5">
-        <!-- Case Table -->
         <h1>Case Management</h1>
+
+        <!-- Add New Case Button -->
         <button class="btn btn-success mb-3" onclick="addCase()">Add New Case</button>
+
+        <!-- Case Table -->
         <table class="table table-bordered" id="caseTable">
             <thead>
                 <tr>
@@ -26,13 +29,16 @@
                 </tr>
             </thead>
             <tbody id="caseList">
-                <!-- Case rows will be dynamically added here -->
+                <!-- Cases will be dynamically inserted here -->
             </tbody>
         </table>
+
         <!-- Pagination -->
         <nav>
             <ul class="pagination" id="pagination"></ul>
         </nav>
+
+        <!-- Excel Report Button -->
         <button class="btn btn-primary" onclick="generateExcelReport()">Generate Report (Excel)</button>
     </div>
 
