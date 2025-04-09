@@ -11,6 +11,9 @@ const mobileField = document.getElementById("mobile");
 const workField = document.getElementById("work");
 const frameSizeField = document.getElementById("frameSize");
 const frameColorField = document.getElementById("frameColor");
+const requiredDetailsField = document.getElementById("requiredDetails");
+const advanceField = document.getElementById("advance");
+const actualPriceField = document.getElementById("actualPrice");
 const statusField = document.getElementById("status");
 const submitButton = document.getElementById("submitButton");
 
@@ -50,6 +53,9 @@ function renderCases(cases) {
             <td>${caseItem.work}</td>
             <td>${caseItem.frameSize}</td>
             <td>${caseItem.frameColor}</td>
+            <td>${caseItem.requiredDetails}</td>
+            <td>${caseItem.advance}</td>
+            <td>${caseItem.actualPrice}</td>
             <td>${caseItem.status}</td>
             <td>
                 <button class="btn btn-primary btn-sm" onclick="editCase(${caseItem.id})">Edit</button>
@@ -80,6 +86,9 @@ function addCase() {
     workField.value = "";
     frameSizeField.value = "";
     frameColorField.value = "";
+    requiredDetailsField.value = "";
+    advanceField.value = "";
+    actualPriceField.value = "";
     statusField.value = "Pending";
     submitButton.innerText = "Add Case";
 }
@@ -97,6 +106,9 @@ async function editCase(id) {
         workField.value = data.work;
         frameSizeField.value = data.frameSize;
         frameColorField.value = data.frameColor;
+        requiredDetailsField.value = data.requiredDetails;
+        advanceField.value = data.advance;
+        actualPriceField.value = data.actualPrice;
         statusField.value = data.status;
         submitButton.innerText = "Update Case";
     } catch (error) {
@@ -115,6 +127,9 @@ caseForm.addEventListener("submit", async (e) => {
         work: workField.value,
         frameSize: frameSizeField.value,
         frameColor: frameColorField.value,
+        requiredDetails: requiredDetailsField.value,
+        advance: advanceField.value,
+        actualPrice: actualPriceField.value,
         status: statusField.value
     };
 
@@ -122,3 +137,62 @@ caseForm.addEventListener("submit", async (e) => {
     try {
         const method = caseIdField.value ? "PUT" : "POST";
         const url = caseIdField.value ? `${baseUrl}/cases/${caseIdField.value}` : `${baseUrl}/cases`;
+        const res = await fetch(url, {
+            method,
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify(caseData)
+        });
+        const data = await res.json();
+        caseModal.hide();
+        fetchCases(currentPage);
+        alert(data.message); // Displaying response message (success or failure)
+    } catch (error) {
+        console.error("Error saving case:", error);
+    } finally {
+        toggleLoading(false);
+    }
+});
+
+// Delete case
+async function deleteCase(id) {
+    if (confirm("Are you sure you want to delete this case?")) {
+        toggleLoading(true);
+        try {
+            await fetch(`${baseUrl}/cases/${id}`, {
+                method: "DELETE",
+                headers: {
+                    "Authorization": `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            fetchCases(currentPage);
+        } catch (error) {
+            console.error("Error deleting case:", error);
+        } finally {
+            toggleLoading(false);
+        }
+    }
+}
+
+// Generate Excel report
+function generateExcelReport() {
+    toggleLoading(true);
+    fetch(`${baseUrl}/cases`)
+        .then((res) => res.json())
+        .then((data) => {
+            const ws = XLSX.utils.json_to_sheet(data.cases);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Cases");
+            XLSX.writeFile(wb, "cases_report.xlsx");
+            toggleLoading(false);
+        })
+        .catch((error) => {
+            console.error("Error generating report:", error);
+            toggleLoading(false);
+        });
+}
+
+// Fetch the initial list of cases
+fetchCases();
