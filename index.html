@@ -1,83 +1,107 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-gray-100">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Case Management System</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Customer Cases</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="h-full">
-  <!-- Main Container -->
-  <div class="min-h-screen flex flex-col">
-    
-    <!-- Navbar -->
-    <nav class="bg-blue-700 text-white shadow">
-      <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-        <div class="text-xl font-bold">Case Management</div>
-        <div class="space-x-6">
-          <button id="btnChats" class="hover:text-gray-300">Chats</button>
-          <button id="btnReports" class="hover:text-gray-300">Reports</button>
-          <button id="btnSettings" class="hover:text-gray-300">Settings</button>
-          <button id="btnLogout" class="hover:text-red-300">Logout</button>
-        </div>
-      </div>
-    </nav>
+<body class="bg-gray-100 text-gray-800">
+  <!-- Navbar -->
+  <nav class="bg-white shadow-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+      <h1 class="text-xl font-bold">📁 Customer Case Manager</h1>
+      <button id="logoutBtn" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">Logout</button>
+    </div>
+  </nav>
 
-    <!-- Login Section -->
-    <section id="loginSection" class="flex-1 flex items-center justify-center">
-      <div class="bg-white shadow-lg p-8 rounded w-full max-w-sm mt-20">
-        <h2 class="text-2xl font-bold mb-4 text-center">Login</h2>
-        <input id="mobile" type="text" placeholder="Mobile Number" class="w-full border px-4 py-2 rounded mb-4" />
-        <input id="password" type="password" placeholder="Password" class="w-full border px-4 py-2 rounded mb-4" />
-        <button id="loginBtn" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Login</button>
-        <p id="loginError" class="text-red-500 mt-3 text-sm hidden">Invalid credentials</p>
-      </div>
-    </section>
+  <!-- Tabs -->
+  <div class="max-w-7xl mx-auto px-4 py-6">
+    <div class="flex space-x-4 mb-6">
+      <button id="casesTab" class="tab-btn active-tab">Cases</button>
+      <button id="reportsTab" class="tab-btn">Reports</button>
+      <button id="settingsTab" class="tab-btn">Settings</button>
+    </div>
 
-    <!-- Dashboard Section -->
-    <section id="dashboardSection" class="hidden flex-1 p-6">
-      <!-- Action Buttons -->
+    <!-- Cases Section -->
+    <div id="casesSection" class="tab-content">
       <div class="flex justify-between mb-4">
-        <h2 class="text-xl font-semibold">Customer Cases</h2>
-        <button id="openModalBtn" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-          + Add New Case
-        </button>
+        <h2 class="text-xl font-semibold">All Cases</h2>
+        <button id="openAddModalBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">+ New Case</button>
       </div>
 
-      <!-- Iframe for Cases Table -->
-      <iframe src="cases_table.html" class="w-full h-[600px] border rounded shadow bg-white" title="Cases Table"></iframe>
-    </section>
-  </div>
+      <!-- Table in iframe -->
+      <iframe id="caseTableFrame" class="w-full h-[500px] border rounded-lg"></iframe>
+    </div>
 
-  <!-- Add/Edit Case Modal -->
-  <div id="caseModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
-    <div class="bg-white p-6 rounded shadow w-full max-w-2xl relative overflow-y-auto max-h-screen">
-      <h3 class="text-lg font-bold mb-4" id="modalTitle">Add New Case</h3>
+    <!-- Reports Section -->
+    <div id="reportsSection" class="tab-content hidden">
+      <h2 class="text-xl font-semibold mb-4">📊 Reports</h2>
+      <div class="space-y-2">
+        <input type="date" id="fromDate" class="input-box" />
+        <input type="date" id="toDate" class="input-box" />
+        <button id="exportBtn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">Export to Excel</button>
+      </div>
+    </div>
 
-      <form id="caseForm" class="grid grid-cols-2 gap-4">
-        <input type="hidden" id="caseId" />
-        <input type="date" id="date" placeholder="Date" class="border px-3 py-2 rounded" required />
-        <input type="text" id="name" placeholder="Customer Name" class="border px-3 py-2 rounded" required />
-        <input type="text" id="mobile" placeholder="Mobile" class="border px-3 py-2 rounded" required />
-        <input type="text" id="altMobile" placeholder="Alternate Mobile" class="border px-3 py-2 rounded" />
-        <input type="text" id="work" placeholder="Work" class="border px-3 py-2 rounded" />
-        <input type="text" id="frameSize" placeholder="Frame Size" class="border px-3 py-2 rounded" />
-        <input type="text" id="frameColor" placeholder="Frame Color" class="border px-3 py-2 rounded" />
-        <input type="text" id="requiredDetails" placeholder="Required Details" class="border px-3 py-2 rounded" />
-        <input type="number" id="advance" placeholder="Advance" class="border px-3 py-2 rounded" />
-        <input type="number" id="actualPrice" placeholder="Actual Price" class="border px-3 py-2 rounded" />
-        <select id="status" class="border px-3 py-2 rounded">
-          <option value="Pending">Pending</option>
-          <option value="Completed">Completed</option>
-        </select>
-      </form>
-
-      <div class="flex justify-end space-x-4 mt-6">
-        <button id="saveCaseBtn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Save</button>
-        <button id="closeModalBtn" class="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500">Cancel</button>
+    <!-- Settings Section -->
+    <div id="settingsSection" class="tab-content hidden">
+      <h2 class="text-xl font-semibold mb-4">⚙️ Change Password</h2>
+      <div class="space-y-3 max-w-md">
+        <input type="password" id="oldPassword" placeholder="Old Password" class="input-box"/>
+        <input type="password" id="newPassword" placeholder="New Password" class="input-box"/>
+        <button id="changePasswordBtn" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded">Change Password</button>
       </div>
     </div>
   </div>
+
+  <!-- Add/Edit Modal -->
+  <div id="caseModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white w-full max-w-2xl p-6 rounded-lg shadow-lg">
+      <h3 class="text-lg font-semibold mb-4" id="modalTitle">Add Case</h3>
+      <form id="caseForm" class="grid grid-cols-2 gap-4">
+        <input type="hidden" id="caseId">
+        <input id="date" type="date" class="input-box" required placeholder="Date">
+        <input id="name" type="text" class="input-box" required placeholder="Customer Name">
+        <input id="mobile" type="text" class="input-box" required placeholder="Mobile">
+        <input id="altMobile" type="text" class="input-box" placeholder="Alt Mobile">
+        <input id="work" type="text" class="input-box" placeholder="Work Type">
+        <input id="frameSize" type="text" class="input-box" placeholder="Frame Size">
+        <input id="frameColor" type="text" class="input-box" placeholder="Frame Color">
+        <input id="requiredDetails" type="text" class="input-box" placeholder="Required Details">
+        <input id="advance" type="number" class="input-box" placeholder="Advance">
+        <input id="actualPrice" type="number" class="input-box" placeholder="Actual Price">
+        <select id="status" class="input-box">
+          <option value="Pending">Pending</option>
+          <option value="Completed">Completed</option>
+        </select>
+        <div class="col-span-2 flex justify-end space-x-3">
+          <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">Save</button>
+          <button type="button" id="closeModalBtn" class="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Styles -->
+  <style>
+    .tab-btn {
+      padding: 0.5rem 1rem;
+      border-radius: 0.375rem;
+      background: #e5e7eb;
+      font-weight: 500;
+    }
+    .tab-btn.active-tab {
+      background: #3b82f6;
+      color: white;
+    }
+    .input-box {
+      border: 1px solid #d1d5db;
+      padding: 0.5rem;
+      border-radius: 0.375rem;
+      width: 100%;
+    }
+  </style>
 
   <script src="app.js"></script>
 </body>
