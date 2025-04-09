@@ -6,28 +6,60 @@ let casesList = [];
 const pageSize = 10;
 
 const loadingSpinner = document.getElementById("loadingSpinner");
+const loginSection = document.getElementById("loginSection");
+const caseSection = document.getElementById("caseSection");
 
-// -------------------
-// Toast Utility
 // -------------------
 function showToast(message) {
   const toastMsgEl = document.getElementById("toastMessage");
   if (toastMsgEl) {
     toastMsgEl.innerText = message;
-    const toastEl = document.getElementById("toast");
-    const toast = new bootstrap.Toast(toastEl);
-    toast.show();
+    new bootstrap.Toast(document.getElementById("toast")).show();
   }
 }
 
-// -------------------
-// Loading Spinner
-// -------------------
-function showLoading() {
-  loadingSpinner.style.display = "block";
+function showLoading() { loadingSpinner.style.display = "block"; }
+function hideLoading() { loadingSpinner.style.display = "none"; }
+
+function logout() {
+  localStorage.removeItem("token");
+  location.reload();
 }
-function hideLoading() {
-  loadingSpinner.style.display = "none";
+
+// -------------------
+// Login
+// -------------------
+document.getElementById("loginForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const username = document.getElementById("username").value.trim();
+  const password = document.getElementById("password").value.trim();
+
+  try {
+    const res = await fetch(`${apiBaseUrl}/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password })
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      localStorage.setItem("token", data.token);
+      token = data.token;
+      showToast("Login successful");
+      showCaseSection();
+      fetchCases();
+    } else {
+      showToast(data.error || "Login failed");
+    }
+  } catch (err) {
+    console.error("Login error", err);
+    showToast("Login error");
+  }
+});
+
+function showCaseSection() {
+  loginSection.classList.add("hidden");
+  caseSection.classList.remove("hidden");
 }
 
 // -------------------
@@ -53,11 +85,9 @@ async function fetchCases() {
 function renderCases() {
   const tbody = document.getElementById("caseTableBody");
   tbody.innerHTML = "";
-
   const start = (currentPage - 1) * pageSize;
   const end = start + pageSize;
   const currentCases = casesList.slice(start, end);
-
   currentCases.forEach((c, index) => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
@@ -76,17 +106,12 @@ function renderCases() {
       <td>
         <button class="btn btn-sm btn-primary" onclick="editCase('${c.id}')">Edit</button>
         <button class="btn btn-sm btn-danger" onclick="deleteCase('${c.id}')">Delete</button>
-      </td>
-    `;
+      </td>`;
     tbody.appendChild(tr);
   });
-
   renderPagination();
 }
 
-// -------------------
-// Pagination
-// -------------------
 function renderPagination() {
   const totalPages = Math.ceil(casesList.length / pageSize);
   const pagination = document.getElementById("pagination");
@@ -104,13 +129,9 @@ function renderPagination() {
   }
 }
 
-// -------------------
-// Add / Update Case
-// -------------------
 document.getElementById("caseForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   const form = e.target;
-
   const caseData = {
     date: form.date.value,
     name: form.name.value,
@@ -125,12 +146,12 @@ document.getElementById("caseForm").addEventListener("submit", async (e) => {
     status: form.status.value,
   };
 
-  try {
-    const url = currentEditingCaseId
-      ? `${apiBaseUrl}/update-case/${currentEditingCaseId}`
-      : `${apiBaseUrl}/add-case`;
-    const method = currentEditingCaseId ? "PUT" : "POST";
+  const url = currentEditingCaseId
+    ? `${apiBaseUrl}/update-case/${currentEditingCaseId}`
+    : `${apiBaseUrl}/add-case`;
+  const method = currentEditingCaseId ? "PUT" : "POST";
 
+  try {
     const res = await fetch(url, {
       method,
       headers: {
@@ -141,7 +162,6 @@ document.getElementById("caseForm").addEventListener("submit", async (e) => {
     });
 
     const data = await res.json();
-
     if (res.ok) {
       showToast(data.message);
       form.reset();
@@ -156,15 +176,10 @@ document.getElementById("caseForm").addEventListener("submit", async (e) => {
   }
 });
 
-// -------------------
-// Edit Case
-// -------------------
 function editCase(id) {
   const c = casesList.find((item) => item.id === id);
   if (!c) return;
-
   currentEditingCaseId = id;
-
   const form = document.getElementById("caseForm");
   form.date.value = c.date;
   form.name.value = c.name;
@@ -177,16 +192,11 @@ function editCase(id) {
   form.advance.value = c.advance;
   form.actualPrice.value = c.actualPrice;
   form.status.value = c.status;
-
   window.scrollTo(0, 0);
 }
 
-// -------------------
-// Delete Case
-// -------------------
 async function deleteCase(id) {
   if (!confirm("Are you sure you want to delete this case?")) return;
-
   try {
     const res = await fetch(`${apiBaseUrl}/delete-case/${id}`, {
       method: "DELETE",
@@ -205,9 +215,6 @@ async function deleteCase(id) {
   }
 }
 
-// -------------------
-// Search Case
-// -------------------
 document.getElementById("searchInput").addEventListener("input", function () {
   const query = this.value.toLowerCase();
   const filtered = casesList.filter(
@@ -220,7 +227,6 @@ document.getElementById("searchInput").addEventListener("input", function () {
   );
   const tbody = document.getElementById("caseTableBody");
   tbody.innerHTML = "";
-
   filtered.forEach((c, index) => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
@@ -239,8 +245,7 @@ document.getElementById("searchInput").addEventListener("input", function () {
       <td>
         <button class="btn btn-sm btn-primary" onclick="editCase('${c.id}')">Edit</button>
         <button class="btn btn-sm btn-danger" onclick="deleteCase('${c.id}')">Delete</button>
-      </td>
-    `;
+      </td>`;
     tbody.appendChild(tr);
   });
 });
@@ -249,9 +254,8 @@ document.getElementById("searchInput").addEventListener("input", function () {
 // Init
 // -------------------
 window.onload = () => {
-  if (!token) {
-    window.location.href = "login.html";
-    return;
+  if (token) {
+    showCaseSection();
+    fetchCases();
   }
-  fetchCases();
 };
