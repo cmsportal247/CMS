@@ -7,32 +7,27 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
 <body class="font-sans bg-gray-100">
-    <div id="loginSection">
-        <!-- Login Section -->
-        <div class="max-w-sm mx-auto mt-20 p-5 bg-white shadow-lg rounded-lg">
-            <h2 class="text-xl mb-4">Login</h2>
-            <form id="loginForm">
-                <input type="text" id="username" placeholder="Username" class="w-full p-2 mb-4 border rounded" required>
-                <input type="password" id="password" placeholder="Password" class="w-full p-2 mb-4 border rounded" required>
-                <button type="submit" class="w-full p-2 bg-blue-500 text-white rounded">Login</button>
-            </form>
-        </div>
+
+    <!-- Login Section -->
+    <div id="loginSection" class="max-w-sm mx-auto mt-20 p-5 bg-white shadow-lg rounded-lg">
+        <h2 class="text-xl mb-4">Login</h2>
+        <form id="loginForm">
+            <input type="text" id="username" placeholder="Username" class="w-full p-2 mb-4 border rounded" required>
+            <input type="password" id="password" placeholder="Password" class="w-full p-2 mb-4 border rounded" required>
+            <button type="submit" class="w-full p-2 bg-blue-500 text-white rounded">Login</button>
+        </form>
     </div>
 
+    <!-- Main App Content -->
     <div id="mainApp" class="hidden">
-        <!-- Main App Content -->
-        <div class="tabs">
-            <button id="casesTab" onclick="showTab('cases')">Cases</button>
-            <button id="reportsTab" onclick="showTab('reports')">Reports</button>
-            <button id="settingsTab" onclick="showTab('settings')">Settings</button>
+        <div class="tabs mt-6">
+            <button id="casesTab" onclick="showTab('cases')" class="px-4 py-2 text-blue-600">Cases</button>
+            <button id="reportsTab" onclick="showTab('reports')" class="px-4 py-2">Reports</button>
+            <button id="settingsTab" onclick="showTab('settings')" class="px-4 py-2">Settings</button>
         </div>
-<div id="loader" class="hidden fixed inset-0 flex items-center justify-center bg-gray-700 bg-opacity-50">
-    <div class="spinner">Loading...</div>
-</div>
 
-
-        <div id="casesContent" class="tab-content hidden">
-            <h2>Cases</h2>
+        <div id="casesContent" class="tab-content mt-6">
+            <h2 class="text-xl">Cases</h2>
             <input type="text" id="searchInput" placeholder="Search Cases" class="mb-4 p-2 border rounded">
             <table id="caseTable" class="table-auto w-full">
                 <thead>
@@ -49,32 +44,31 @@
             <div id="pagination" class="mt-4"></div>
         </div>
 
+        <!-- Loading Spinner -->
+        <div id="loader" class="hidden fixed inset-0 flex items-center justify-center bg-gray-700 bg-opacity-50">
+            <div class="spinner text-white">Loading...</div>
+        </div>
+
         <!-- Case Modal -->
-        <div id="caseModal" class="hidden fixed inset-0 bg-gray-700 bg-opacity-50 flex items-center justify-center">
-            <div class="bg-white p-5 rounded">
-                <h3 class="text-xl mb-4">Add/Edit Case</h3>
+        <div id="caseModal" class="hidden fixed inset-0 flex justify-center items-center bg-gray-700 bg-opacity-50">
+            <div class="bg-white p-6 rounded-lg w-96">
+                <h3 class="text-lg mb-4">Add/Edit Case</h3>
                 <form id="caseForm">
                     <input type="text" id="name" placeholder="Name" class="w-full p-2 mb-4 border rounded" required>
                     <input type="text" id="mobile" placeholder="Mobile" class="w-full p-2 mb-4 border rounded" required>
-                    <input type="text" id="altMobile" placeholder="Alt Mobile" class="w-full p-2 mb-4 border rounded">
+                    <input type="text" id="altMobile" placeholder="Alternative Mobile" class="w-full p-2 mb-4 border rounded">
                     <input type="text" id="work" placeholder="Work" class="w-full p-2 mb-4 border rounded">
                     <input type="text" id="frameSize" placeholder="Frame Size" class="w-full p-2 mb-4 border rounded">
                     <input type="text" id="frameColor" placeholder="Frame Color" class="w-full p-2 mb-4 border rounded">
-                    <textarea id="requiredDetails" placeholder="Required Details" class="w-full p-2 mb-4 border rounded"></textarea>
+                    <input type="text" id="requiredDetails" placeholder="Required Details" class="w-full p-2 mb-4 border rounded">
                     <input type="number" id="advance" placeholder="Advance" class="w-full p-2 mb-4 border rounded">
                     <input type="number" id="actualPrice" placeholder="Actual Price" class="w-full p-2 mb-4 border rounded">
-                    <select id="status" class="w-full p-2 mb-4 border rounded">
-                        <option value="Pending">Pending</option>
-                        <option value="Completed">Completed</option>
-                    </select>
+                    <input type="text" id="status" placeholder="Status" class="w-full p-2 mb-4 border rounded">
                     <button type="submit" class="w-full p-2 bg-blue-500 text-white rounded">Save Case</button>
                 </form>
             </div>
         </div>
-    </div>
 
-    <div id="loader" class="hidden fixed inset-0 flex items-center justify-center bg-gray-700 bg-opacity-50">
-        <div class="spinner"></div>
     </div>
 
     <script src="app.js"></script>
