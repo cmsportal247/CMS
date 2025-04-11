@@ -1,11 +1,11 @@
-document.addEventListener("DOMContentLoaded", () => {
+window.addEventListener("load", () => {
     const token = localStorage.getItem("token");
     const caseModal = document.getElementById("caseModal");
     const caseForm = document.getElementById("caseForm");
     const searchInput = document.getElementById("searchInput");
     const caseTableBody = document.getElementById("caseTableBody");
     const paginationContainer = document.getElementById("pagination");
-    
+
     // Elements for form fields
     const caseFields = {
         name: document.getElementById("name"),
@@ -115,8 +115,10 @@ document.addEventListener("DOMContentLoaded", () => {
     // Show loading spinner
     const showLoader = (show) => {
         const loader = document.getElementById("loader");
-        if (show) loader.classList.remove('hidden');
-        else loader.classList.add('hidden');
+        if (loader) {
+            if (show) loader.classList.remove('hidden');
+            else loader.classList.add('hidden');
+        }
     };
 
     // Show toast notifications
