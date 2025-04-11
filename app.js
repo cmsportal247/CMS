@@ -9,21 +9,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Fetch cases and populate table
     const fetchCases = async (page = 1, search = '') => {
-        const url = `https://backend-7l9n.onrender.com/cases?search=${search}&page=${page}`;
-        
-        // Show loading spinner
-        document.getElementById('loadingSpinner').style.display = 'block';
-        
-        try {
-            const res = await fetch(url, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`  // Add Bearer token to header
-                }
-            });
+    const url = `https://backend-7l9n.onrender.com/cases?search=${search}&page=${page}`;
 
-            const data = await res.json();
-            if (res.ok) {
+    // Show loading spinner
+    document.getElementById('loadingSpinner').style.display = 'block';
+
+    try {
+        const res = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`  // Add Bearer token to header
+            }
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+            // Ensure `data.cases` exists and is an array
+            if (Array.isArray(data.cases)) {
                 // Populate cases table
                 const tableBody = document.querySelector('#caseTable tbody');
                 tableBody.innerHTML = '';  // Clear the table before adding new rows
@@ -59,14 +62,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     pagination.appendChild(pageButton);
                 }
             } else {
-                alert(data.message || 'Failed to fetch cases');
+                alert('Error: Invalid response format. Expected an array of cases.');
             }
-        } catch (error) {
-            alert('Error fetching cases: ' + error.message);
-        } finally {
-            document.getElementById('loadingSpinner').style.display = 'none';  // Hide loading spinner
+        } else {
+            alert(data.message || 'Failed to fetch cases');
         }
-    };
+    } catch (error) {
+        alert('Error fetching cases: ' + error.message);
+    } finally {
+        document.getElementById('loadingSpinner').style.display = 'none';  // Hide loading spinner
+    }
+};
+
 
     // Function to handle case editing
     window.editCase = async (id) => {
