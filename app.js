@@ -27,10 +27,10 @@ window.addEventListener("load", () => {
     };
 
     // Load cases
-    const loadCases = async (search = "") => {
+    const loadCases = async (search = "", page = 1) => {
         try {
             showLoader(true);
-            const res = await fetch(`https://backend-7l9n.onrender.com/cases?search=${search}`, {
+            const res = await fetch(`https://backend-7l9n.onrender.com/cases?search=${search}&page=${page}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await res.json();
@@ -50,8 +50,8 @@ window.addEventListener("load", () => {
                 <td>${c.name}</td>
                 <td>${c.mobile}</td>
                 <td>${c.status}</td>
-                <td><button onclick="editCase(${c.id})">Edit</button></td>
-                <td><button onclick="deleteCase(${c.id})">Delete</button></td>
+                <td><button onclick="editCase('${c.id}')">Edit</button></td>
+                <td><button onclick="deleteCase('${c.id}')">Delete</button></td>
             </tr>
         `).join("");
     };
@@ -125,10 +125,3 @@ window.addEventListener("load", () => {
     const showToast = (message, type) => {
         const toast = document.createElement("div");
         toast.textContent = message;
-        toast.className = `toast ${type}`;
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 3000);
-    };
-
-    loadCases();  // Load cases on page load
-});
