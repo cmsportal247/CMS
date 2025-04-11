@@ -142,4 +142,41 @@ exportBtn.onclick = async () => {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    showToast('
+    showToast('Export successful');
+  } catch {
+    showToast('Server error');
+  }
+};
+
+// Handle login
+const loginForm = document.getElementById('loginForm');
+loginForm.onsubmit = async (e) => {
+  e.preventDefault();
+  const password = document.getElementById('password').value;
+  try {
+    const res = await fetch(`${API_BASE}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      token = data.token;
+      document.getElementById('loginSection').classList.add('hidden');
+      document.getElementById('mainSection').classList.remove('hidden');
+      loadCases();
+    } else {
+      showToast(data.error || 'Login failed');
+    }
+  } catch {
+    showToast('Server error');
+  }
+};
+
+// Handle logout
+logoutBtn.onclick = () => {
+  token = '';
+  document.getElementById('loginSection').classList.remove('hidden');
+  document.getElementById('mainSection').classList.add('hidden');
+  showToast('Logged out');
+};
