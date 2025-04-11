@@ -1,104 +1,147 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Case Management</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        #loadingSpinner {
-            display: none;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Case Management</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <style>
+    #loader {
+      display: none;
+    }
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1055;
+    }
+  </style>
 </head>
 <body>
-    <div class="container mt-4">
-        <!-- Search Section -->
-        <input type="text" id="searchInput" class="form-control" placeholder="Search cases">
-        <button id="searchButton" class="btn btn-primary mt-2">Search</button>
-
-        <!-- Table to display cases -->
-        <div id="loadingSpinner" class="spinner-border" role="status">
-            <span class="visually-hidden">Loading...</span>
-        </div>
-        <table id="caseTable" class="table table-bordered mt-4">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Mobile</th>
-                    <th>Work</th>
-                    <th>Frame Size</th>
-                    <th>Frame Color</th>
-                    <th>Required Details</th>
-                    <th>Advance</th>
-                    <th>Actual Price</th>
-                    <th>Status</th>
-                    <th>Edit</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Cases will be populated here -->
-            </tbody>
-        </table>
-
-        <!-- Pagination controls -->
-        <div id="pagination" class="mt-4"></div>
-
-        <!-- Modal for Add/Edit Case -->
-        <div class="modal" tabindex="-1" id="caseModal">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Add/Edit Case</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <form id="caseForm">
-                            <div class="mb-3">
-                                <label for="name" class="form-label">Name</label>
-                                <input type="text" class="form-control" id="name" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="mobile" class="form-label">Mobile</label>
-                                <input type="text" class="form-control" id="mobile" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="work" class="form-label">Work</label>
-                                <input type="text" class="form-control" id="work" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="frameSize" class="form-label">Frame Size</label>
-                                <input type="text" class="form-control" id="frameSize">
-                            </div>
-                            <div class="mb-3">
-                                <label for="frameColor" class="form-label">Frame Color</label>
-                                <input type="text" class="form-control" id="frameColor">
-                            </div>
-                            <div class="mb-3">
-                                <label for="requiredDetails" class="form-label">Required Details</label>
-                                <input type="text" class="form-control" id="requiredDetails">
-                            </div>
-                            <div class="mb-3">
-                                <label for="advance" class="form-label">Advance</label>
-                                <input type="text" class="form-control" id="advance">
-                            </div>
-                            <div class="mb-3">
-                                <label for="actualPrice" class="form-label">Actual Price</label>
-                                <input type="text" class="form-control" id="actualPrice">
-                            </div>
-                            <div class="mb-3">
-                                <label for="status" class="form-label">Status</label>
-                                <input type="text" class="form-control" id="status">
-                            </div>
-                            <button type="submit" class="btn btn-primary">Save</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
+  <div class="container mt-4">
+    <!-- Login Section -->
+    <div id="loginSection">
+      <h3>Login</h3>
+      <form id="loginForm">
+        <input type="text" id="loginUsername" class="form-control mb-2" placeholder="Username" required />
+        <input type="password" id="loginPassword" class="form-control mb-2" placeholder="Password" required />
+        <button type="submit" class="btn btn-primary">Login</button>
+      </form>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="app.js"></script>
+    <!-- App Section -->
+    <div id="appSection" style="display:none;">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Case Management</h2>
+        <button id="logoutBtn" class="btn btn-danger">Logout</button>
+      </div>
+
+      <!-- Search Section -->
+      <div class="input-group mb-3">
+        <input type="text" id="searchInput" class="form-control" placeholder="Search cases..." />
+        <button class="btn btn-primary" id="searchBtn">Search</button>
+      </div>
+
+      <!-- Loader -->
+      <div id="loader" class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+
+      <!-- Cases Table -->
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Name</th>
+            <th>Mobile</th>
+            <th>Alt Mobile</th>
+            <th>Work</th>
+            <th>Frame Size</th>
+            <th>Frame Color</th>
+            <th>Required Details</th>
+            <th>Advance</th>
+            <th>Actual Price</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="caseTableBody"></tbody>
+      </table>
+
+      <!-- Pagination -->
+      <div id="pagination" class="mt-3"></div>
+
+      <!-- Modal -->
+      <div class="modal fade" id="caseModal" tabindex="-1">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <form id="caseForm">
+              <div class="modal-header">
+                <h5 class="modal-title">Add / Edit Case</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body">
+                <input type="hidden" id="id" name="id" />
+                <div class="mb-2">
+                  <label for="date" class="form-label">Date</label>
+                  <input type="date" class="form-control" id="date" name="date" required />
+                </div>
+                <div class="mb-2">
+                  <label for="name" class="form-label">Name</label>
+                  <input type="text" class="form-control" id="name" name="name" required />
+                </div>
+                <div class="mb-2">
+                  <label for="mobile" class="form-label">Mobile</label>
+                  <input type="text" class="form-control" id="mobile" name="mobile" required />
+                </div>
+                <div class="mb-2">
+                  <label for="altMobile" class="form-label">Alt Mobile</label>
+                  <input type="text" class="form-control" id="altMobile" name="altMobile" />
+                </div>
+                <div class="mb-2">
+                  <label for="work" class="form-label">Work</label>
+                  <input type="text" class="form-control" id="work" name="work" />
+                </div>
+                <div class="mb-2">
+                  <label for="frameSize" class="form-label">Frame Size</label>
+                  <input type="text" class="form-control" id="frameSize" name="frameSize" />
+                </div>
+                <div class="mb-2">
+                  <label for="frameColor" class="form-label">Frame Color</label>
+                  <input type="text" class="form-control" id="frameColor" name="frameColor" />
+                </div>
+                <div class="mb-2">
+                  <label for="requiredDetails" class="form-label">Required Details</label>
+                  <input type="text" class="form-control" id="requiredDetails" name="requiredDetails" />
+                </div>
+                <div class="mb-2">
+                  <label for="advance" class="form-label">Advance</label>
+                  <input type="text" class="form-control" id="advance" name="advance" />
+                </div>
+                <div class="mb-2">
+                  <label for="actualPrice" class="form-label">Actual Price</label>
+                  <input type="text" class="form-control" id="actualPrice" name="actualPrice" />
+                </div>
+                <div class="mb-2">
+                  <label for="status" class="form-label">Status</label>
+                  <input type="text" class="form-control" id="status" name="status" />
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="submit" class="btn btn-success">Save</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Toast Container (optional) -->
+      <div class="toast-container" id="toastContainer"></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
