@@ -125,3 +125,22 @@ window.addEventListener("load", () => {
     const showToast = (message, type) => {
         const toast = document.createElement("div");
         toast.textContent = message;
+        toast.classList.add("toast", type === "success" ? "bg-green-500" : "bg-red-500", "text-white", "p-2", "rounded");
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    };
+
+    // Initialize app
+    const init = () => {
+        if (token) {
+            document.getElementById("loginSection").classList.add("hidden");
+            document.getElementById("mainApp").classList.remove("hidden");
+            loadCases();
+        } else {
+            document.getElementById("loginSection").classList.remove("hidden");
+            document.getElementById("mainApp").classList.add("hidden");
+        }
+    };
+
+    init();
+});
