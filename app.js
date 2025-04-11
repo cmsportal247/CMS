@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Fetch cases and populate table
-    const fetchCases = async (page = 1, search = '') => {
+   const fetchCases = async (page = 1, search = '') => {
     const url = `https://backend-7l9n.onrender.com/cases?search=${search}&page=${page}`;
 
     // Show loading spinner
@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         const data = await res.json();
+        console.log(data); // Log the response data to inspect its structure
 
         if (res.ok) {
             // Ensure `data.cases` exists and is an array
@@ -73,6 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('loadingSpinner').style.display = 'none';  // Hide loading spinner
     }
 };
+
 
 
     // Function to handle case editing
