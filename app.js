@@ -1,146 +1,191 @@
-window.addEventListener("load", () => {
-    const token = localStorage.getItem("token");
-    const caseModal = document.getElementById("caseModal");
-    const caseForm = document.getElementById("caseForm");
-    const searchInput = document.getElementById("searchInput");
-    const caseTableBody = document.getElementById("caseTableBody");
-    const paginationContainer = document.getElementById("pagination");
+document.addEventListener('DOMContentLoaded', () => {
+    const token = localStorage.getItem('token');  // Ensure the token is in localStorage
 
-    // Elements for form fields
-    const caseFields = {
-        name: document.getElementById("name"),
-        mobile: document.getElementById("mobile"),
-        altMobile: document.getElementById("altMobile"),
-        work: document.getElementById("work"),
-        frameSize: document.getElementById("frameSize"),
-        frameColor: document.getElementById("frameColor"),
-        requiredDetails: document.getElementById("requiredDetails"),
-        advance: document.getElementById("advance"),
-        actualPrice: document.getElementById("actualPrice"),
-        status: document.getElementById("status")
-    };
+    if (!token) {
+        alert('Please log in first');
+        window.location.href = '/login';  // Redirect to login page if no token
+        return;
+    }
 
-    // Utility to toggle modals
-    const toggleModal = (open) => {
-        if (open) caseModal.classList.remove('hidden');
-        else caseModal.classList.add('hidden');
-    };
-
-    // Load cases
-    const loadCases = async (search = "", page = 1) => {
+    // Fetch cases and populate table
+    const fetchCases = async (page = 1, search = '') => {
+        const url = `https://backend-7l9n.onrender.com/cases?search=${search}&page=${page}`;
+        
+        // Show loading spinner
+        document.getElementById('loadingSpinner').style.display = 'block';
+        
         try {
-            showLoader(true);
-            const res = await fetch(`https://backend-7l9n.onrender.com/cases?search=${search}&page=${page}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
+            const res = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`  // Add Bearer token to header
+                }
             });
+
             const data = await res.json();
-            renderCases(data.cases);
-            setupPagination(data.totalPages);
-        } catch (err) {
-            showToast("Error loading cases", "error");
-        } finally {
-            showLoader(false);
-        }
-    };
+            if (res.ok) {
+                // Populate cases table
+                const tableBody = document.querySelector('#caseTable tbody');
+                tableBody.innerHTML = '';  // Clear the table before adding new rows
 
-    // Render cases to table
-    const renderCases = (cases) => {
-        caseTableBody.innerHTML = cases.map(c => `
-            <tr>
-                <td>${c.name}</td>
-                <td>${c.mobile}</td>
-                <td>${c.status}</td>
-                <td><button onclick="editCase('${c.id}')">Edit</button></td>
-                <td><button onclick="deleteCase('${c.id}')">Delete</button></td>
-            </tr>
-        `).join("");
-    };
+                data.cases.forEach(caseItem => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${caseItem.name}</td>
+                        <td>${caseItem.mobile}</td>
+                        <td>${caseItem.work}</td>
+                        <td>${caseItem.frameSize}</td>
+                        <td>${caseItem.frameColor}</td>
+                        <td>${caseItem.requiredDetails}</td>
+                        <td>${caseItem.advance}</td>
+                        <td>${caseItem.actualPrice}</td>
+                        <td>${caseItem.status}</td>
+                        <td>
+                            <button class="btn btn-warning" onclick="editCase(${caseItem.id})">Edit</button>
+                            <button class="btn btn-danger" onclick="deleteCase(${caseItem.id})">Delete</button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
 
-    // Setup pagination
-    const setupPagination = (totalPages) => {
-        paginationContainer.innerHTML = "";
-        for (let i = 1; i <= totalPages; i++) {
-            const pageButton = document.createElement("button");
-            pageButton.textContent = i;
-            pageButton.onclick = () => loadCases("", i);
-            paginationContainer.appendChild(pageButton);
-        }
-    };
-
-    // Edit case
-    window.editCase = (id) => {
-        const caseToEdit = document.getElementById(`case-${id}`);
-        populateForm(caseToEdit);
-        toggleModal(true);
-    };
-
-    // Populate form with case data
-    const populateForm = (caseData) => {
-        for (const field in caseFields) {
-            caseFields[field].value = caseData[field];
-        }
-    };
-
-    // Add or update case
-    caseForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        try {
-            showLoader(true);
-            const caseData = {};
-            for (const field in caseFields) {
-                caseData[field] = caseFields[field].value;
+                // Handle pagination
+                const pagination = document.getElementById('pagination');
+                pagination.innerHTML = ''; // Clear pagination controls
+                for (let i = 1; i <= data.totalPages; i++) {
+                    const pageButton = document.createElement('button');
+                    pageButton.classList.add('btn', 'btn-secondary', 'mx-1');
+                    pageButton.textContent = i;
+                    pageButton.onclick = () => fetchCases(i);
+                    pagination.appendChild(pageButton);
+                }
+            } else {
+                alert(data.message || 'Failed to fetch cases');
             }
-            const res = await fetch("https://backend-7l9n.onrender.com/cases", {
-                method: "POST",
-                headers: { 'Authorization': `Bearer ${token}` },
+        } catch (error) {
+            alert('Error fetching cases: ' + error.message);
+        } finally {
+            document.getElementById('loadingSpinner').style.display = 'none';  // Hide loading spinner
+        }
+    };
+
+    // Function to handle case editing
+    window.editCase = async (id) => {
+        // Fetch the case details to populate the modal for editing
+        const url = `https://backend-7l9n.onrender.com/cases/${id}`;
+        
+        try {
+            const res = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`  // Add Bearer token to header
+                }
+            });
+
+            const caseData = await res.json();
+            if (res.ok) {
+                // Populate the modal fields with case data
+                document.getElementById('name').value = caseData.name;
+                document.getElementById('mobile').value = caseData.mobile;
+                document.getElementById('work').value = caseData.work;
+                document.getElementById('frameSize').value = caseData.frameSize;
+                document.getElementById('frameColor').value = caseData.frameColor;
+                document.getElementById('requiredDetails').value = caseData.requiredDetails;
+                document.getElementById('advance').value = caseData.advance;
+                document.getElementById('actualPrice').value = caseData.actualPrice;
+                document.getElementById('status').value = caseData.status;
+                document.getElementById('caseId').value = caseData.id;  // Set hidden case ID field
+
+                // Show modal for editing case
+                const modal = new bootstrap.Modal(document.getElementById('caseModal'));
+                modal.show();
+            } else {
+                alert(caseData.message || 'Failed to fetch case details');
+            }
+        } catch (error) {
+            alert('Error fetching case details: ' + error.message);
+        }
+    };
+
+    // Function to handle case deletion
+    window.deleteCase = async (id) => {
+        if (confirm('Are you sure you want to delete this case?')) {
+            const url = `https://backend-7l9n.onrender.com/cases/${id}`;
+            try {
+                const res = await fetch(url, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`  // Add Bearer token to header
+                    }
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    alert('Case deleted successfully');
+                    fetchCases();  // Re-fetch the cases after deletion
+                } else {
+                    alert(data.message || 'Failed to delete case');
+                }
+            } catch (error) {
+                alert('Error deleting case: ' + error.message);
+            }
+        }
+    };
+
+    // Function to handle case form submission (Add/Edit)
+    document.getElementById('caseForm').addEventListener('submit', async (event) => {
+        event.preventDefault();  // Prevent the default form submission
+
+        const caseData = {
+            name: document.getElementById('name').value,
+            mobile: document.getElementById('mobile').value,
+            work: document.getElementById('work').value,
+            frameSize: document.getElementById('frameSize').value,
+            frameColor: document.getElementById('frameColor').value,
+            requiredDetails: document.getElementById('requiredDetails').value,
+            advance: document.getElementById('advance').value,
+            actualPrice: document.getElementById('actualPrice').value,
+            status: document.getElementById('status').value
+        };
+
+        const caseId = document.getElementById('caseId').value;
+
+        const url = caseId
+            ? `https://backend-7l9n.onrender.com/cases/${caseId}`  // Update case
+            : 'https://backend-7l9n.onrender.com/cases';  // Add new case
+
+        try {
+            const res = await fetch(url, {
+                method: caseId ? 'PUT' : 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
                 body: JSON.stringify(caseData)
             });
+
             const data = await res.json();
-            showToast("Case saved successfully", "success");
-            toggleModal(false);
-            loadCases();
-        } catch (err) {
-            showToast("Error saving case", "error");
-        } finally {
-            showLoader(false);
+            if (res.ok) {
+                alert(caseId ? 'Case updated successfully' : 'Case added successfully');
+                fetchCases();  // Re-fetch the cases after adding/updating
+                const modal = bootstrap.Modal.getInstance(document.getElementById('caseModal'));
+                modal.hide();  // Close the modal
+            } else {
+                alert(data.message || 'Failed to save case');
+            }
+        } catch (error) {
+            alert('Error saving case: ' + error.message);
         }
     });
 
-    // Search functionality
-    searchInput.addEventListener("input", () => {
-        const query = searchInput.value;
-        loadCases(query);
-    });
+    // Initial fetch for cases (page 1)
+    fetchCases();
 
-    // Show loading spinner
-    const showLoader = (show) => {
-        const loader = document.getElementById("loader");
-        if (loader) {
-            if (show) loader.classList.remove('hidden');
-            else loader.classList.add('hidden');
-        }
+    // Search function (to be connected to a search input if needed)
+    const searchCases = () => {
+        const searchTerm = document.getElementById('searchInput').value;
+        fetchCases(1, searchTerm);
     };
 
-    // Show toast notifications
-    const showToast = (message, type) => {
-        const toast = document.createElement("div");
-        toast.textContent = message;
-        toast.classList.add("toast", type === "success" ? "bg-green-500" : "bg-red-500", "text-white", "p-2", "rounded");
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 3000);
-    };
-
-    // Initialize app
-    const init = () => {
-        if (token) {
-            document.getElementById("loginSection").classList.add("hidden");
-            document.getElementById("mainApp").classList.remove("hidden");
-            loadCases();
-        } else {
-            document.getElementById("loginSection").classList.remove("hidden");
-            document.getElementById("mainApp").classList.add("hidden");
-        }
-    };
-
-    init();
+    // Event listener for search
+    document.getElementById('searchButton').addEventListener('click', searchCases);
 });
