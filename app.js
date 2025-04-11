@@ -1,180 +1,132 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const API_BASE = 'https://backend-7l9n.onrender.com';
-  let token = '';
+document.addEventListener("DOMContentLoaded", () => {
+    const token = localStorage.getItem("token");
+    const caseModal = document.getElementById("caseModal");
+    const caseForm = document.getElementById("caseForm");
+    const searchInput = document.getElementById("searchInput");
+    const caseTableBody = document.getElementById("caseTableBody");
+    const paginationContainer = document.getElementById("pagination");
+    
+    // Elements for form fields
+    const caseFields = {
+        name: document.getElementById("name"),
+        mobile: document.getElementById("mobile"),
+        altMobile: document.getElementById("altMobile"),
+        work: document.getElementById("work"),
+        frameSize: document.getElementById("frameSize"),
+        frameColor: document.getElementById("frameColor"),
+        requiredDetails: document.getElementById("requiredDetails"),
+        advance: document.getElementById("advance"),
+        actualPrice: document.getElementById("actualPrice"),
+        status: document.getElementById("status")
+    };
 
-  const showToast = (message) => {
-    const toast = document.getElementById('toast');
-    toast.textContent = message;
-    toast.classList.remove('hidden');
-    setTimeout(() => toast.classList.add('hidden'), 3000);
-  };
+    // Utility to toggle modals
+    const toggleModal = (open) => {
+        if (open) caseModal.classList.remove('hidden');
+        else caseModal.classList.add('hidden');
+    };
 
-  const toggleSpinner = (show) => {
-    const spinner = document.getElementById('loadingSpinner');
-    spinner.classList.toggle('hidden', !show);
-  };
+    // Load cases
+    const loadCases = async (search = "") => {
+        try {
+            showLoader(true);
+            const res = await fetch(`https://backend-7l9n.onrender.com/cases?search=${search}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            renderCases(data.cases);
+            setupPagination(data.totalPages);
+        } catch (err) {
+            showToast("Error loading cases", "error");
+        } finally {
+            showLoader(false);
+        }
+    };
 
-  const loadCases = async () => {
-    toggleSpinner(true);
-    try {
-      const res = await fetch(`${API_BASE}/cases`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const cases = await res.json();
-      if (res.ok) {
-        const tableBody = document.getElementById('casesTableBody');
-        tableBody.innerHTML = cases.map((caseData) => `
-          <tr>
-            <td>${caseData.date}</td>
-            <td>${caseData.name}</td>
-            <td>${caseData.mobile}</td>
-            <td>${caseData.altMobile}</td>
-            <td>${caseData.work}</td>
-            <td>${caseData.frameSize}</td>
-            <td>${caseData.frameColor}</td>
-            <td>${caseData.requiredDetails}</td>
-            <td>${caseData.advance}</td>
-            <td>${caseData.actualPrice}</td>
-            <td>${caseData.status}</td>
-            <td>
-              <button class="bg-yellow-500 text-white px-4 py-1 rounded" onclick="editCase(${caseData.id})">Edit</button>
-            </td>
-          </tr>
-        `).join('');
-      } else {
-        showToast('Failed to load cases');
-      }
-    } catch {
-      showToast('Server error');
-    }
-    toggleSpinner(false);
-  };
+    // Render cases to table
+    const renderCases = (cases) => {
+        caseTableBody.innerHTML = cases.map(c => `
+            <tr>
+                <td>${c.name}</td>
+                <td>${c.mobile}</td>
+                <td>${c.status}</td>
+                <td><button onclick="editCase(${c.id})">Edit</button></td>
+                <td><button onclick="deleteCase(${c.id})">Delete</button></td>
+            </tr>
+        `).join("");
+    };
 
-  window.editCase = (id) => {
-    fetch(`${API_BASE}/cases/${id}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    }).then((res) => res.json()).then((data) => {
-      document.getElementById('modalTitle').textContent = 'Edit Case';
-      document.getElementById('caseId').value = data.id;
-      document.getElementById('date').value = data.date;
-      document.getElementById('name').value = data.name;
-      document.getElementById('mobile').value = data.mobile;
-      document.getElementById('altMobile').value = data.altMobile;
-      document.getElementById('work').value = data.work;
-      document.getElementById('frameSize').value = data.frameSize;
-      document.getElementById('frameColor').value = data.frameColor;
-      document.getElementById('requiredDetails').value = data.requiredDetails;
-      document.getElementById('advance').value = data.advance;
-      document.getElementById('actualPrice').value = data.actualPrice;
-      document.getElementById('status').value = data.status;
-      caseModal.classList.remove('hidden');
+    // Setup pagination
+    const setupPagination = (totalPages) => {
+        paginationContainer.innerHTML = "";
+        for (let i = 1; i <= totalPages; i++) {
+            const pageButton = document.createElement("button");
+            pageButton.textContent = i;
+            pageButton.onclick = () => loadCases("", i);
+            paginationContainer.appendChild(pageButton);
+        }
+    };
+
+    // Edit case
+    window.editCase = (id) => {
+        const caseToEdit = document.getElementById(`case-${id}`);
+        populateForm(caseToEdit);
+        toggleModal(true);
+    };
+
+    // Populate form with case data
+    const populateForm = (caseData) => {
+        for (const field in caseFields) {
+            caseFields[field].value = caseData[field];
+        }
+    };
+
+    // Add or update case
+    caseForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        try {
+            showLoader(true);
+            const caseData = {};
+            for (const field in caseFields) {
+                caseData[field] = caseFields[field].value;
+            }
+            const res = await fetch("https://backend-7l9n.onrender.com/cases", {
+                method: "POST",
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify(caseData)
+            });
+            const data = await res.json();
+            showToast("Case saved successfully", "success");
+            toggleModal(false);
+            loadCases();
+        } catch (err) {
+            showToast("Error saving case", "error");
+        } finally {
+            showLoader(false);
+        }
     });
-  };
 
-  const openAddModalBtn = document.getElementById('openAddModalBtn');
-  const closeModalBtn = document.getElementById('closeModalBtn');
-  const exportBtn = document.getElementById('exportBtn');
-  const logoutBtn = document.getElementById('logoutBtn');
-  const caseModal = document.getElementById('caseModal');
-  const caseForm = document.getElementById('caseForm');
-  const loginForm = document.getElementById('loginForm');
-
-  openAddModalBtn.onclick = () => {
-    caseForm.reset();
-    document.getElementById('caseId').value = '';
-    document.getElementById('modalTitle').textContent = 'Add Case';
-    caseModal.classList.remove('hidden');
-  };
-
-  closeModalBtn.onclick = () => caseModal.classList.add('hidden');
-
-  caseForm.onsubmit = async (e) => {
-    e.preventDefault();
-    const data = {};
-    ['caseId','date','name','mobile','altMobile','work','frameSize','frameColor','requiredDetails','advance','actualPrice','status'].forEach(id => {
-      data[id === 'caseId' ? 'id' : id] = document.getElementById(id).value;
+    // Search functionality
+    searchInput.addEventListener("input", () => {
+        const query = searchInput.value;
+        loadCases(query);
     });
 
-    toggleSpinner(true);
-    const isEdit = !!data.id;
-    try {
-      const url = `${API_BASE}/cases${isEdit ? '/' + data.id : ''}`;
-      const method = isEdit ? 'PUT' : 'POST';
-      const res = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(data),
-      });
-      if (res.ok) {
-        showToast(isEdit ? 'Case updated' : 'Case added');
-        caseModal.classList.add('hidden');
-        loadCases();
-      } else {
-        const err = await res.json();
-        showToast(err.error || 'Failed to save');
-      }
-    } catch {
-      showToast('Server error');
-    }
-    toggleSpinner(false);
-  };
+    // Show loading spinner
+    const showLoader = (show) => {
+        const loader = document.getElementById("loader");
+        if (show) loader.classList.remove('hidden');
+        else loader.classList.add('hidden');
+    };
 
-  exportBtn.onclick = async () => {
-    const from = document.getElementById('fromDate').value;
-    const to = document.getElementById('toDate').value;
-    if (!from || !to) return showToast('Select dates');
-    try {
-      const res = await fetch(`${API_BASE}/export?from=${from}&to=${to}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) {
-        showToast('Export failed');
-        return;
-      }
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'report.xlsx';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      showToast('Export successful');
-    } catch {
-      showToast('Server error');
-    }
-  };
+    // Show toast notifications
+    const showToast = (message, type) => {
+        const toast = document.createElement("div");
+        toast.textContent = message;
+        toast.className = `toast ${type}`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    };
 
-  loginForm.onsubmit = async (e) => {
-    e.preventDefault();
-    const password = document.getElementById('password').value;
-    try {
-      const res = await fetch(`${API_BASE}/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        token = data.token;
-        document.getElementById('loginSection').classList.add('hidden');
-        document.getElementById('mainSection').classList.remove('hidden');
-        loadCases();
-      } else {
-        showToast(data.error || 'Login failed');
-      }
-    } catch {
-      showToast('Server error');
-    }
-  };
-
-  logoutBtn.onclick = () => {
-    token = '';
-    document.getElementById('loginSection').classList.remove('hidden');
-    document.getElementById('mainSection').classList.add('hidden');
-    showToast('Logged out');
-  };
+    loadCases();  // Load cases on page load
 });
