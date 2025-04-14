@@ -1,131 +1,148 @@
-const apiBase = "https://backend-7l9n.onrender.com";
+const baseURL = 'https://backend-7l9n.onrender.com';
+let token = localStorage.getItem('token') || '';
 let currentPage = 1;
-let totalPages = 1;
-let authToken = "";
+const casesPerPage = 10;
 
-document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("loginForm").addEventListener("submit", loginUser);
-  document.getElementById("logoutBtn").addEventListener("click", logoutUser);
-  document.getElementById("caseForm").addEventListener("submit", saveCase);
-  document.getElementById("searchBtn").addEventListener("click", searchCases);
-  document.getElementById("addNewCaseBtn").addEventListener("click", openAddCaseModal);
-  document.getElementById("reportExportBtn").addEventListener("click", exportReport);
-  document.getElementById("passwordForm").addEventListener("submit", changePassword);
+document.addEventListener('DOMContentLoaded', () => {
+  showTab('cases');
 
-  showTab("casesTab");
+  document.getElementById('loginForm').addEventListener('submit', login);
+  document.getElementById('logoutBtn').addEventListener('click', logout);
+  document.getElementById('searchBtn').addEventListener('click', searchCases);
+  document.getElementById('caseForm').addEventListener('submit', saveCase);
+  document.getElementById('fromDate').addEventListener('change', filterReports);
+  document.getElementById('toDate').addEventListener('change', filterReports);
+  document.getElementById('exportCSV').addEventListener('click', exportToCSV);
+  document.getElementById('changePasswordForm').addEventListener('submit', changePassword);
+  document.getElementById('openModalBtn').addEventListener('click', openNewCaseModal);
+
+  document.querySelectorAll('.nav-link').forEach(tab => {
+    tab.addEventListener('click', () => {
+      showTab(tab.dataset.tab);
+    });
+  });
+
+  if (token) {
+    showApp();
+    fetchCases();
+  }
 });
 
-function loginUser(e) {
-  e.preventDefault();
-  const username = document.getElementById("loginUsername").value;
-  const password = document.getElementById("loginPassword").value;
+function showTab(tabName) {
+  document.querySelectorAll('.tab-content').forEach(tab => {
+    tab.style.display = 'none';
+  });
+  document.getElementById(`${tabName}Tab`).style.display = 'block';
 
-  fetch(`${apiBase}/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
+  document.querySelectorAll('.nav-link').forEach(link => {
+    link.classList.remove('active');
+  });
+  document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+}
+
+function showLoader(show) {
+  document.getElementById('loader').style.display = show ? 'block' : 'none';
+}
+
+function showToast(msg) {
+  const toastContainer = document.getElementById('toastContainer');
+  toastContainer.innerHTML = `<div class="toast align-items-center text-bg-primary show" role="alert">
+      <div class="d-flex">
+        <div class="toast-body">${msg}</div>
+        <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast"></button>
+      </div>
+    </div>`;
+}
+
+function login(e) {
+  e.preventDefault();
+  const username = document.getElementById('loginUsername').value;
+  const password = document.getElementById('loginPassword').value;
+
+  fetch(`${baseURL}/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ username, password })
   })
     .then(res => res.json())
     .then(data => {
       if (data.token) {
-        authToken = data.token;
-        document.getElementById("loginSection").style.display = "none";
-        document.getElementById("appSection").style.display = "block";
-        loadCases();
+        token = data.token;
+        localStorage.setItem('token', token);
+        showApp();
+        fetchCases();
       } else {
-        showToast("Login failed", "danger");
+        alert('Login failed');
       }
     });
 }
 
-function logoutUser() {
-  authToken = "";
-  document.getElementById("loginSection").style.display = "block";
-  document.getElementById("appSection").style.display = "none";
+function logout() {
+  localStorage.removeItem('token');
+  token = '';
+  document.getElementById('loginSection').style.display = 'block';
+  document.getElementById('appSection').style.display = 'none';
 }
 
-function loadCases(page = 1, query = "") {
-  document.getElementById("loader").style.display = "block";
-  fetch(`${apiBase}/cases?page=${page}&limit=10&search=${query}`, {
-    headers: { Authorization: `Bearer ${authToken}` }
+function showApp() {
+  document.getElementById('loginSection').style.display = 'none';
+  document.getElementById('appSection').style.display = 'block';
+}
+
+function fetchCases(page = 1, search = '') {
+  currentPage = page;
+  showLoader(true);
+  fetch(`${baseURL}/cases?search=${search}&page=${page}&limit=${casesPerPage}`, {
+    headers: { Authorization: `Bearer ${token}` }
   })
     .then(res => res.json())
     .then(data => {
-      currentPage = page;
-      totalPages = Math.ceil(data.total / 10);
-      renderCases(data.cases);
-      renderPagination();
-      document.getElementById("loader").style.display = "none";
+      populateTable(data.items);
+      setupPagination(data.totalCount);
+      showLoader(false);
     });
 }
 
-function renderCases(cases) {
-  const tbody = document.getElementById("caseTableBody");
-  tbody.innerHTML = "";
-  cases.forEach(c => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${c.date || ""}</td>
-      <td>${c.name || ""}</td>
-      <td>${c.mobile || ""}</td>
-      <td>${c.altMobile || ""}</td>
-      <td>${c.work || ""}</td>
-      <td>${c.frameSize || ""}</td>
-      <td>${c.frameColor || ""}</td>
-      <td>${c.requiredDetails || ""}</td>
-      <td>${c.advance || ""}</td>
-      <td>${c.actualPrice || ""}</td>
-      <td>${c.status || ""}</td>
-      <td>
-        <button class="btn btn-sm btn-warning" onclick='editCase(${JSON.stringify(c)})'>Edit</button>
-      </td>
+function populateTable(cases) {
+  const tbody = document.getElementById('caseTableBody');
+  tbody.innerHTML = '';
+  cases.forEach(item => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${item.date}</td>
+      <td>${item.name}</td>
+      <td>${item.mobile}</td>
+      <td>${item.altMobile}</td>
+      <td>${item.work}</td>
+      <td>${item.frameSize}</td>
+      <td>${item.frameColor}</td>
+      <td>${item.requiredDetails}</td>
+      <td>${item.advance}</td>
+      <td>${item.actualPrice}</td>
+      <td>${item.status}</td>
+      <td><button class="btn btn-sm btn-warning" onclick='editCase(${JSON.stringify(item)})'>Edit</button></td>
     `;
-    tbody.appendChild(tr);
+    tbody.appendChild(row);
   });
 }
 
-function renderPagination() {
-  const pagination = document.getElementById("pagination");
-  pagination.innerHTML = "";
+function setupPagination(totalCount) {
+  const pagination = document.getElementById('pagination');
+  pagination.innerHTML = '';
+  const totalPages = Math.ceil(totalCount / casesPerPage);
   for (let i = 1; i <= totalPages; i++) {
-    const btn = document.createElement("button");
+    const btn = document.createElement('button');
+    btn.className = `btn btn-sm mx-1 ${i === currentPage ? 'btn-primary' : 'btn-outline-primary'}`;
     btn.textContent = i;
-    btn.className = `btn btn-sm ${i === currentPage ? "btn-primary" : "btn-outline-primary"} me-1`;
-    btn.onclick = () => loadCases(i);
+    btn.onclick = () => fetchCases(i);
     pagination.appendChild(btn);
   }
 }
 
-function openAddCaseModal() {
-  document.getElementById("caseForm").reset();
-  document.getElementById("id").value = "";
-  new bootstrap.Modal(document.getElementById("caseModal")).show();
-}
-
-function saveCase(e) {
-  e.preventDefault();
-  const caseData = {};
-  [...e.target.elements].forEach(input => {
-    if (input.name) caseData[input.name] = input.value;
-  });
-
-  const method = caseData.id ? "PUT" : "POST";
-  const url = caseData.id ? `${apiBase}/cases/${caseData.id}` : `${apiBase}/cases`;
-
-  fetch(url, {
-    method,
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${authToken}`
-    },
-    body: JSON.stringify(caseData)
-  })
-    .then(res => res.json())
-    .then(() => {
-      bootstrap.Modal.getInstance(document.getElementById("caseModal")).hide();
-      loadCases(currentPage);
-      showToast("Case saved successfully", "success");
-    });
+function openNewCaseModal() {
+  document.getElementById('caseForm').reset();
+  document.getElementById('id').value = '';
+  new bootstrap.Modal(document.getElementById('caseModal')).show();
 }
 
 function editCase(data) {
@@ -134,77 +151,94 @@ function editCase(data) {
       document.getElementById(key).value = data[key];
     }
   });
-  new bootstrap.Modal(document.getElementById("caseModal")).show();
+  new bootstrap.Modal(document.getElementById('caseModal')).show();
+}
+
+function saveCase(e) {
+  e.preventDefault();
+  const form = new FormData(e.target);
+  const caseData = Object.fromEntries(form.entries());
+  const method = caseData.id ? 'PUT' : 'POST';
+  const url = caseData.id ? `${baseURL}/cases/${caseData.id}` : `${baseURL}/cases`;
+
+  fetch(url, {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify(caseData)
+  })
+    .then(res => res.json())
+    .then(() => {
+      fetchCases();
+      bootstrap.Modal.getInstance(document.getElementById('caseModal')).hide();
+      showToast('Case saved successfully');
+    });
 }
 
 function searchCases() {
-  const query = document.getElementById("searchInput").value;
-  loadCases(1, query);
+  const query = document.getElementById('searchInput').value;
+  fetchCases(1, query);
 }
 
-function showTab(tab) {
-  document.querySelectorAll(".tab-pane").forEach(el => el.style.display = "none");
-  document.getElementById(tab).style.display = "block";
-}
+// REPORTS
+let allCases = [];
+function filterReports() {
+  const from = document.getElementById('fromDate').value;
+  const to = document.getElementById('toDate').value;
+  if (!from || !to) return;
 
-function exportReport() {
-  const from = document.getElementById("fromDate").value;
-  const to = document.getElementById("toDate").value;
-
-  if (!from || !to) {
-    showToast("Select both From and To dates", "warning");
-    return;
-  }
-
-  fetch(`${apiBase}/cases/export?from=${from}&to=${to}`, {
-    headers: { Authorization: `Bearer ${authToken}` }
-  })
-    .then(res => res.blob())
-    .then(blob => {
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "cases_report.csv";
-      a.click();
-      showToast("CSV downloaded", "success");
-    });
-}
-
-function changePassword(e) {
-  e.preventDefault();
-  const oldPass = document.getElementById("oldPassword").value;
-  const newPass = document.getElementById("newPassword").value;
-
-  fetch(`${apiBase}/change-password`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${authToken}`
-    },
-    body: JSON.stringify({ oldPassword: oldPass, newPassword: newPass })
+  fetch(`${baseURL}/cases`, {
+    headers: { Authorization: `Bearer ${token}` }
   })
     .then(res => res.json())
     .then(data => {
-      if (data.success) {
-        showToast("Password changed", "success");
-        e.target.reset();
-      } else {
-        showToast("Failed to change password", "danger");
-      }
+      allCases = data.items.filter(item => item.date >= from && item.date <= to);
     });
 }
 
-function showToast(message, type = "info") {
-  const toastContainer = document.getElementById("toastContainer");
-  const toast = document.createElement("div");
-  toast.className = `toast align-items-center text-bg-${type} border-0 show mb-2`;
-  toast.role = "alert";
-  toast.innerHTML = `
-    <div class="d-flex">
-      <div class="toast-body">${message}</div>
-      <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast"></button>
-    </div>
-  `;
-  toastContainer.appendChild(toast);
-  setTimeout(() => toast.remove(), 3000);
+function exportToCSV() {
+  if (!allCases.length) return;
+  const headers = Object.keys(allCases[0]);
+  const csvRows = [headers.join(',')];
+
+  allCases.forEach(row => {
+    const values = headers.map(h => `"${row[h] || ''}"`);
+    csvRows.push(values.join(','));
+  });
+
+  const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'cases.csv';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+// SETTINGS
+function changePassword(e) {
+  e.preventDefault();
+  const oldPassword = document.getElementById('oldPassword').value;
+  const newPassword = document.getElementById('newPassword').value;
+
+  fetch(`${baseURL}/change-password`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify({ oldPassword, newPassword })
+  })
+    .then(res => res.json())
+    .then(res => {
+      if (res.success) {
+        showToast('Password changed successfully');
+        e.target.reset();
+      } else {
+        alert(res.message || 'Error changing password');
+      }
+    });
 }
